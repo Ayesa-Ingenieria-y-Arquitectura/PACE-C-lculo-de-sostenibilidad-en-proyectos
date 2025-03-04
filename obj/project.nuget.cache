@@ -1,0 +1,12 @@
+{
+  "version": 2,
+  "dgSpecHash": "awj3mjqLS90=",
+  "success": true,
+  "projectFilePath": "C:\\Users\\prodriguezsa\\source\\repos\\Bc3-WPF\\Bc3-WPF.csproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\prodriguezsa\\.nuget\\packages\\materialdesigncolors\\5.2.1\\materialdesigncolors.5.2.1.nupkg.sha512",
+    "C:\\Users\\prodriguezsa\\.nuget\\packages\\materialdesignthemes\\5.2.1\\materialdesignthemes.5.2.1.nupkg.sha512",
+    "C:\\Users\\prodriguezsa\\.nuget\\packages\\microsoft.xaml.behaviors.wpf\\1.1.39\\microsoft.xaml.behaviors.wpf.1.1.39.nupkg.sha512"
+  ],
+  "logs": []
+}
