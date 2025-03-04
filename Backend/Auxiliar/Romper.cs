@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace Bc3_WPF.Backend.Auxiliar
 {
-    internal class Romper
+    public class Romper
     {
 
         public static Presupuesto change(Presupuesto original,
@@ -16,6 +16,7 @@ namespace Bc3_WPF.Backend.Auxiliar
             List<Presupuesto> cambios, string Id, Boolean first)
         {
             List<Presupuesto> hijos = original.hijos;
+            Presupuesto og;
 
             if (historial.Count > 0)
             {
@@ -26,9 +27,17 @@ namespace Bc3_WPF.Backend.Auxiliar
 
                 if (first)
                 {
-                    hijos.Remove(hijos.Where(e => e.Id == Id).First());
-                    hijos.AddRange(cambios);
-                    hijos.Sort((e, a) => e.Id.CompareTo(a.Id));
+                    og = hijos.Where(e => e.Id == Id).First();
+                    if (og.quantity != cambios.Sum(o => o.quantity))
+                    {
+                        throw new ArgumentException("Las cantidades no coinciden");
+                    }
+                    else
+                    {
+                        hijos.Remove(hijos.Where(e => e.Id == Id).First());
+                        hijos.AddRange(cambios);
+                        hijos.Sort((e, a) => e.Id.CompareTo(a.Id));
+                    }
                 }
                 else
                 {
@@ -49,10 +58,26 @@ namespace Bc3_WPF.Backend.Auxiliar
             }
             else
             {
-                Presupuesto h = hijos.Where(e => e.Id == Id).First();
-                int ind = hijos.IndexOf(h);
-                h.hijos = cambios;
-                hijos[ind] = h;
+                if (first)
+                {
+                    og = hijos.Where(e => e.Id == Id).First();
+                    if (og.quantity != cambios.Sum(o => o.quantity))
+                    {
+                        throw new ArgumentException("Las cantidades no coinciden");
+                    }
+                    else
+                    {
+                        hijos.Remove(hijos.Where(e => e.Id == Id).First());
+                        hijos.AddRange(cambios);
+                    }
+                }
+                else
+                {
+                    Presupuesto h = hijos.Where(e => e.Id == Id).First();
+                    int ind = hijos.IndexOf(h);
+                    h.hijos = cambios;
+                    hijos[ind] = h;
+                }
                 original.hijos = hijos;
 
                 return original;

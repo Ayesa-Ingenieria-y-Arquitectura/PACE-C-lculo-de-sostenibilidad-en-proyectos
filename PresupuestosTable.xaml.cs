@@ -216,8 +216,7 @@ namespace Bc3_WPF
 
                     try
                     {
-                        string json = JsonSerializer.Serialize(presupuesto, new JsonSerializerOptions { WriteIndented = true });
-                        File.WriteAllText(filePath, json);
+                        presupuestoService.saveJson(filePath, presupuesto);
                         System.Windows.MessageBox.Show($"file saved in {filePath}", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
                     }
                     catch (Exception ex)
