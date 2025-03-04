@@ -18,16 +18,9 @@ namespace Bc3_WPF.backend.Services
 
         public static Presupuesto loadFromJson(string filename)
         {
-            try
-            {
                 string json = File.ReadAllText(filename, System.Text.Encoding.GetEncoding("iso-8859-1"));
                 Presupuesto obj = JsonSerializer.Deserialize<Presupuesto>(json);
                 return obj;
-            }
-            catch(Exception e)
-            {
-                throw new Exception(e.Message);
-            }
         }
 
         private static Presupuesto presupuestoFromConcept(List<Concepto> conceptos)
@@ -86,6 +79,19 @@ namespace Bc3_WPF.backend.Services
             Concepto res = conceptos.Find(e => e.Id.EndsWith("##"));
 
             return res;
+        }
+
+        public static void saveJson(string filePath, Presupuesto presupuesto)
+        {
+            if (presupuesto != null)
+            {
+                string json = JsonSerializer.Serialize(presupuesto, new JsonSerializerOptions { WriteIndented = true });
+                File.WriteAllText(filePath, json);
+            }
+            else
+            {
+                throw new NullReferenceException("No existe un presupuesto a descargar");
+            }
         }
     }
 

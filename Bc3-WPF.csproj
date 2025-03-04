@@ -12,6 +12,13 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="testing\**" />
+    <EmbeddedResource Remove="testing\**" />
+    <None Remove="testing\**" />
+    <Page Remove="testing\**" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Compile Remove="Resources\MainWindow.xaml.cs" />
   </ItemGroup>
 
