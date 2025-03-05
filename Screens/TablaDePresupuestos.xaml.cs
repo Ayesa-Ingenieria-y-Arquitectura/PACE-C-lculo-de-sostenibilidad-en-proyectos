@@ -214,6 +214,11 @@ namespace Bc3_WPF
                 pres.fecha = DateOnly.FromDateTime(DateTime.Now);
             }
 
+            foreach (Presupuesto pres in p)
+            {
+                pres.fecha = DateOnly.FromDateTime(DateTime.Now);
+            }
+
             if (og.quantity == p.Sum(o => o.quantity))
             {
                 KeyValuePair<string, Presupuesto> pre = new KeyValuePair<string, Presupuesto>(fatherId, obj);
