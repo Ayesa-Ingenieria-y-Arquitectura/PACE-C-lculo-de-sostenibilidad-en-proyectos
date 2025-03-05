@@ -78,7 +78,7 @@ namespace Bc3_WPF {
                 return;
             }
             _contentLoaded = true;
-            System.Uri resourceLocater = new System.Uri("/Bc3-WPF;V1.0.0.0;component/window1.xaml", System.UriKind.Relative);
+            System.Uri resourceLocater = new System.Uri("/Bc3-WPF;component/window1.xaml", System.UriKind.Relative);
             
             #line 1 "..\..\..\Window1.xaml"
             System.Windows.Application.LoadComponent(this, resourceLocater);
