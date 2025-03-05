@@ -1,0 +1,30 @@
+﻿<Window x:Class="Bc3_WPF.Window1"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:Bc3_WPF"
+        mc:Ignorable="d"
+        Title="Window1" Height="450" Width="800">
+    <Grid>
+        <!-- Menu de Navegación -->
+        <Button Content="≡" Height="30" Width="30" Background="White" BorderThickness="0" FontSize="20" Click="DisplayMenu"
+HorizontalAlignment="Left" VerticalAlignment="Top" x:Name="MenuButton">
+            <Button.Template>
+                <ControlTemplate TargetType="Button">
+                    <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="0">
+                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    </Border>
+                </ControlTemplate>
+            </Button.Template>
+        </Button>
+
+        <StackPanel Orientation="Vertical" Background="LightGray" Width="30" HorizontalAlignment="Left" Visibility="Hidden" x:Name="Menu">
+            <Button Content="≡" Height="30" Width="30" Background="LightGray" BorderThickness="0" FontSize="20" Click="DisplayMenu"/>
+            <Button Content="🏠" Height="30" Width="30" BorderThickness="0" Background="LightGray" Click="HomeWindows"/>
+            <Button Content="📂" Height="30" Width="30" BorderThickness="0" Background="LightGray" Click="newFile"/>
+        </StackPanel>
+        
+        <ContentControl x:Name="MainContent"/>
+    </Grid>
+</Window>
