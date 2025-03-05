@@ -5,14 +5,16 @@ using Bc3_WPF.backend.Modelos;
 using System.Text.Json;
 using Bc3_WPF.Backend.Auxiliar;
 using System.IO;
+using System.Windows.Controls;
 
 namespace Bc3_WPF
 {
     /// <summary>
-    /// Lógica de interacción para Window1.xaml
+    /// Lógica de interacción para Page1.xaml
     /// </summary>
-    public partial class PresupuestosTable : Window
+    public partial class TablaDePresupuestos : System.Windows.Controls.UserControl
     {
+        #region PROPIEDADES
         private Presupuesto? presupuesto;
         private List<KeyValuePair<string, List<Presupuesto>>> historial = new List<KeyValuePair<string, List<Presupuesto>>>();
         private List<Presupuesto> currentData = new List<Presupuesto>();
@@ -20,12 +22,15 @@ namespace Bc3_WPF
         private int RowsPerPage = 5;
         private List<Presupuesto> showing = new List<Presupuesto>();
         private decimal pages = 0;
- 
-        public PresupuestosTable()
+        List<KeyValuePair<string, Presupuesto>> previous = [];
+
+        public TablaDePresupuestos()
         {
             InitializeComponent();
         }
+        #endregion
 
+        #region TABLA
         private void LoadBC3(object sender, RoutedEventArgs e)
         {
             Microsoft.Win32.OpenFileDialog ofd = new Microsoft.Win32.OpenFileDialog
@@ -34,7 +39,7 @@ namespace Bc3_WPF
                 Filter = "BC3 Files (*.bc3)|*.bc3|JSON Files (*.json)|*.json|All Supported Files (*.bc3;*.json)|*.bc3;*.json"
             };
 
-            if (ofd.ShowDialog() == true )
+            if (ofd.ShowDialog() == true)
             {
                 string filePath = ofd.FileName;
                 if (filePath.EndsWith(".bc3"))
@@ -73,8 +78,12 @@ namespace Bc3_WPF
 
             if (Item.hijos != null)
             {
+                List<Presupuesto> past = previous.Where(p => p.Key == Item.Id).Select(p => p.Value).ToList();
                 historial.Add(new KeyValuePair<String, List<Presupuesto>>(Item.Id, currentData));
-                currentData = Item.hijos;
+                currentData = [];
+                currentData.AddRange(Item.hijos);
+                currentData.AddRange(past);
+                currentData.Sort((a, i) => a.Id.CompareTo(i.Id));
                 makePagination();
                 Tabla.ItemsSource = showing;
 
@@ -98,10 +107,12 @@ namespace Bc3_WPF
 
             if (historial.Count == 0)
             {
-                BackButton.Visibility= Visibility.Hidden;
+                BackButton.Visibility = Visibility.Hidden;
             }
         }
+        #endregion
 
+        #region PAGINACIÓN
         private void PreviousPage(object sender, RoutedEventArgs e)
         {
             if (pageNumber > 1)
@@ -156,14 +167,16 @@ namespace Bc3_WPF
                 PageNumber.Text = $"Page {pageNumber} / {pages}";
             }
         }
+        #endregion
 
-
+        #region SPLIT
         private void handleSplit(object sender, RoutedEventArgs e)
         {
             var button = (System.Windows.Controls.Button)sender;
             Presupuesto Item = (Presupuesto)button.DataContext;
+            Presupuesto pr = new Presupuesto { Id = Item.Id, name = Item.name, quantity = Item.quantity, fecha = Item.fecha };
             List<Presupuesto> p = new List<Presupuesto>();
-            p.Add(Item);
+            p.Add(pr);
 
             SplitPopUp.IsOpen = !SplitPopUp.IsOpen;
             SplitTable.ItemsSource = p;
@@ -181,15 +194,37 @@ namespace Bc3_WPF
             Presupuesto og = p[0];
             p.Remove(p[0]);
 
+            string fatherId;
+            if (historial.Count == 0)
+            {
+                fatherId = presupuesto.Id;
+            }
+            else
+            {
+                fatherId = historial[historial.Count - 1].Key;
+            }
+            Presupuesto obj = og;
+            obj.outdated = true;
+
+            foreach (Presupuesto pres in p)
+            {
+                pres.fecha = DateOnly.FromDateTime(DateTime.Now);
+            }
 
             if (og.quantity == p.Sum(o => o.quantity))
             {
+                KeyValuePair<string, Presupuesto> pre = new KeyValuePair<string, Presupuesto>(fatherId, obj);
+                previous.Add(pre);
                 Presupuesto res = Romper.change(presupuesto, historial, p, Id, true);
                 presupuesto = res;
                 historial = new List<KeyValuePair<string, List<Presupuesto>>>();
                 if (presupuesto.hijos != null)
                 {
-                    currentData = presupuesto.hijos;
+                    List<Presupuesto> past = previous.Where(p => p.Key == presupuesto.Id).Select(p => p.Value).ToList();
+                    currentData = [];
+                    currentData.AddRange(presupuesto.hijos);
+                    currentData.AddRange(past);
+                    currentData.Sort((a, i) => a.Id.CompareTo(i.Id));
                 }
 
                 makePagination();
@@ -200,10 +235,12 @@ namespace Bc3_WPF
             else
             {
                 SplitPopUp.IsOpen = false;
-                System.Windows.MessageBox.Show("The sum of the new quantities doesnt match the original quantity","Alert", MessageBoxButton.OK, MessageBoxImage.Error);
+                System.Windows.MessageBox.Show("The sum of the new quantities doesnt match the original quantity", "Alert", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
+        #endregion
 
+        #region SAVE
         private void SaveButtonClick(object sender, RoutedEventArgs e)
         {
             using (var dialog = new FolderBrowserDialog())
@@ -226,5 +263,6 @@ namespace Bc3_WPF
                 }
             }
         }
+        #endregion
     }
 }

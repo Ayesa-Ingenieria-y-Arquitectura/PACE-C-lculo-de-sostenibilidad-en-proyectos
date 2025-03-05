@@ -7,5 +7,6 @@
         public DateOnly? fecha { get; set; }
         public List<Presupuesto>? hijos { get; set; }
         public float? quantity { get; set; }
+        public Boolean? outdated { get; set; }
     }
 }
