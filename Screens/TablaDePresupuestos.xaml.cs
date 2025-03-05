@@ -23,6 +23,7 @@ namespace Bc3_WPF
         private List<Presupuesto> showing = new List<Presupuesto>();
         private decimal pages = 0;
         List<KeyValuePair<string, Presupuesto>> previous = [];
+        string fileName;
 
         public TablaDePresupuestos()
         {
@@ -36,11 +37,13 @@ namespace Bc3_WPF
             Microsoft.Win32.OpenFileDialog ofd = new Microsoft.Win32.OpenFileDialog
             {
                 Title = "Select a .bc3 or .json File",
-                Filter = "BC3 Files (*.bc3)|*.bc3|JSON Files (*.json)|*.json|All Supported Files (*.bc3;*.json)|*.bc3;*.json"
+                Filter = "All Supported Files (*.bc3;*.json)|*.bc3;*.json"
             };
 
             if (ofd.ShowDialog() == true)
             {
+                fileName = ofd.SafeFileName.Split(".")[0];
+                Titulo.Text = $"🗃️  File: {fileName}";
                 string filePath = ofd.FileName;
                 if (filePath.EndsWith(".bc3"))
                 {
@@ -249,7 +252,7 @@ namespace Bc3_WPF
 
                 if (dialog.ShowDialog() == System.Windows.Forms.DialogResult.OK)
                 {
-                    string filePath = Path.Combine(dialog.SelectedPath, $"{presupuesto.name}.json");
+                    string filePath = Path.Combine(dialog.SelectedPath, $"{fileName}-1.json");
 
                     try
                     {

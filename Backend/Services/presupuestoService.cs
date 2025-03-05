@@ -69,7 +69,7 @@ namespace Bc3_WPF.backend.Services
 
         private static Concepto searchById(List<Concepto> conceptos, string id)
         {
-            Concepto res = conceptos.Where(e => e.Id == id).First();
+            Concepto res = conceptos.Where(e => e.Id.Split("#")[0].Split("\\")[0] == id.Split("#")[0].Split("\\")[0]).First();
 
             return res;
         }

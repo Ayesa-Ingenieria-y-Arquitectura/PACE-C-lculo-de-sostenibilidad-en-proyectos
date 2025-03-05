@@ -9,6 +9,8 @@
 
     <Grid>
 
+        <!--Título-->
+        <TextBlock Name="Titulo" Text="🗃️  Explore BC3 Tool" Margin="50,10,0,0" FontSize="20" FontWeight="Heavy"/>
 
         <!-- Botón Selección de archivo -->
         <Button Name="FileButton"  Content="Select File" HorizontalAlignment="Center" VerticalAlignment="Center" Click="LoadBC3" />

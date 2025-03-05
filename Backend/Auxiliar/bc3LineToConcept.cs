@@ -1,5 +1,6 @@
 ﻿using Bc3_WPF.backend.Modelos;
 using System.Globalization;
+using System.Text.RegularExpressions;
 
 namespace Bc3_WPF.backend.Auxiliar
 {
@@ -52,7 +53,7 @@ namespace Bc3_WPF.backend.Auxiliar
 
             string id = atributos[0];
             string descomposiciones = atributos[1];
-            Concepto concepto = res.FirstOrDefault(c => c.Id == id);
+            Concepto concepto = res.Where(e => e.Id.Split("#")[0].Split("\\")[0] == id.Split("#")[0].Split("\\")[0]).First();
 
             if (concepto != null)
             {
@@ -70,21 +71,14 @@ namespace Bc3_WPF.backend.Auxiliar
         {
             List<KeyValuePair<string, float?>> res = new List<KeyValuePair<string, float?>>();
 
-            string[] pieces = descomposiciones.Split("\\\\");
+            string[] pieces = descomposiciones.Split("\\");
             string id;
 
             for (int i = 0; i < pieces.Length - 1; i++)
             {
-                if (i == 0)
-                {
-                    id = pieces[i];
-                }
-                else
-                {
-                    id = pieces[i].Split("\\")[1];
-                }
-
-                var value = pieces[i + 1].Split("\\")[0];
+                id = pieces[i];
+                i = i + 2;
+                var value = pieces[i];
                 KeyValuePair<string, float?> key;
                 if (value != "")
                 {
