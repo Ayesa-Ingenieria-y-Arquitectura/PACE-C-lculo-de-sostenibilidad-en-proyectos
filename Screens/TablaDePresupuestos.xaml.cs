@@ -6,6 +6,10 @@ using System.Text.Json;
 using Bc3_WPF.Backend.Auxiliar;
 using System.IO;
 using System.Windows.Controls;
+using LiveChartsCore;
+using LiveChartsCore.SkiaSharpView.Extensions;
+using LiveChartsCore.SkiaSharpView.WPF;
+using Bc3_WPF.Screens.Charts;
 
 namespace Bc3_WPF
 {
@@ -14,6 +18,8 @@ namespace Bc3_WPF
     /// </summary>
     public partial class TablaDePresupuestos : System.Windows.Controls.UserControl
     {
+
+
         #region PROPIEDADES
         private Presupuesto? presupuesto;
         private List<KeyValuePair<string, List<Presupuesto>>> historial = new List<KeyValuePair<string, List<Presupuesto>>>();
@@ -24,10 +30,12 @@ namespace Bc3_WPF
         private decimal pages = 0;
         List<KeyValuePair<string, Presupuesto>> previous = [];
         string fileName;
+        Pie chartData;
 
         public TablaDePresupuestos()
         {
             InitializeComponent();
+
         }
         #endregion
 
@@ -60,8 +68,12 @@ namespace Bc3_WPF
                 }
 
                 makePagination();
+                chartData = new Pie();
+                updateDoughtChart();
 
                 TitleTable.Text = presupuesto.name;
+                Chart.Title = chartData.TitleChart;
+                PieChart.Title = chartData.TitlePie;
 
                 TitleTable.Visibility = Visibility.Visible;
                 SelectDB.Visibility = Visibility.Visible;
@@ -69,6 +81,8 @@ namespace Bc3_WPF
                 DB.Visibility = Visibility.Visible;
                 SelectDB.Visibility = Visibility.Visible;
                 FileButton.Visibility = Visibility.Hidden;
+                PieChart.Visibility = Visibility.Visible;
+                Chart.Visibility = Visibility.Visible;
 
                 Tabla.ItemsSource = showing;
             }
@@ -88,6 +102,7 @@ namespace Bc3_WPF
                 currentData.AddRange(past);
                 currentData.Sort((a, i) => a.Id.CompareTo(i.Id));
                 makePagination();
+                updateDoughtChart();
                 Tabla.ItemsSource = showing;
 
             }
@@ -105,6 +120,7 @@ namespace Bc3_WPF
                 currentData = historial[historial.Count - 1].Value;
                 historial.Remove(historial[historial.Count - 1]);
                 makePagination();
+                updateDoughtChart();
                 Tabla.ItemsSource = showing;
             }
 
@@ -236,6 +252,7 @@ namespace Bc3_WPF
                 }
 
                 makePagination();
+                updateDoughtChart();
                 Tabla.ItemsSource = showing;
                 SplitPopUp.IsOpen = false;
                 SaveButton.Visibility = Visibility.Visible;
@@ -270,6 +287,19 @@ namespace Bc3_WPF
                     }
                 }
             }
+        }
+        #endregion
+
+        #region CHARTS
+        private void updateDoughtChart()
+        {
+            List<KeyValuePair<string, float?>> data = currentData.Select(e => new KeyValuePair<string, float?>(e.Id, e.quantity)).ToList();
+            int v = currentData.Count;
+
+            Pie.setDoughtData(data, chartData);
+            Pie.updateLineChart(v, chartData);
+            PieChart.Series = chartData.Series;
+            Chart.Series = chartData.Series2;
         }
         #endregion
     }
