@@ -66,23 +66,26 @@ namespace Bc3_WPF
                 {
                     currentData = presupuesto.hijos;
                 }
+                chartData = new Pie();
 
                 makePagination();
-                chartData = new Pie();
                 updateDoughtChart();
+                getMedidores();
 
                 TitleTable.Text = presupuesto.name;
                 Chart.Title = chartData.TitleChart;
                 PieChart.Title = chartData.TitlePie;
 
+                TableRectangle.Visibility = Visibility.Visible;
                 TitleTable.Visibility = Visibility.Visible;
                 SelectDB.Visibility = Visibility.Visible;
                 Tabla.Visibility = Visibility.Visible;
                 DB.Visibility = Visibility.Visible;
                 SelectDB.Visibility = Visibility.Visible;
-                FileButton.Visibility = Visibility.Hidden;
                 PieChart.Visibility = Visibility.Visible;
                 Chart.Visibility = Visibility.Visible;
+
+                FileButton.Visibility = Visibility.Hidden;
 
                 Tabla.ItemsSource = showing;
             }
@@ -253,6 +256,8 @@ namespace Bc3_WPF
 
                 makePagination();
                 updateDoughtChart();
+                getMedidores();
+
                 Tabla.ItemsSource = showing;
                 SplitPopUp.IsOpen = false;
                 SaveButton.Visibility = Visibility.Visible;
@@ -293,13 +298,57 @@ namespace Bc3_WPF
         #region CHARTS
         private void updateDoughtChart()
         {
-            List<KeyValuePair<string, float?>> data = currentData.Select(e => new KeyValuePair<string, float?>(e.Id, e.quantity)).ToList();
-            int v = currentData.Count;
+            List<Presupuesto> data = currentData.Where(e => e.outdated == null || e.outdated == false).ToList();
+            List<KeyValuePair<string, float?>> doughtData = data.Select(e => new KeyValuePair<string, float?>(e.Id, e.quantity)).ToList();
+            int v = data.Count;
 
-            Pie.setDoughtData(data, chartData);
+            Pie.setDoughtData(doughtData, chartData);
             Pie.updateLineChart(v, chartData);
             PieChart.Series = chartData.Series;
             Chart.Series = chartData.Series2;
+
+            PieRectangle.Visibility = Visibility.Visible;
+            ChartRectangle.Visibility = Visibility.Visible;
+        }
+        #endregion
+
+        #region MEDIDORES
+        private void getMedidores()
+        {
+            HashSet<string> set = new HashSet<string>();
+            set.Add(presupuesto.Id);
+            
+            (float, HashSet<string>) var = getQuantity(presupuesto.hijos, 0, set);
+            int concepts = var.Item2.Count;
+            float quantities = var.Item1;
+            
+            Quantity.Text = quantities.ToString();
+            Concepts.Text = concepts.ToString();
+
+            Concepts.Visibility = Visibility.Visible;
+            ConceptTitle.Visibility = Visibility.Visible;
+            ConceptRectangle.Visibility = Visibility.Visible;
+            Quantity.Visibility = Visibility.Visible;
+            QuantityRectangle.Visibility = Visibility.Visible;
+            QuantityTitle.Visibility = Visibility.Visible;
+        }
+        private (float, HashSet<string>) getQuantity(List<Presupuesto> pr, float acum, HashSet<string> obj)
+        {
+            foreach(Presupuesto p in pr)
+            {
+                if (!obj.Contains(p.Id))
+                    obj.Add(p.Id);
+                if(p.quantity != null)
+                    acum += p.quantity.Value;
+                
+                if (p.hijos != null)
+                {
+                    (float, HashSet<string>) v = getQuantity(p.hijos, acum, obj);
+                    acum = v.Item1;
+                    obj = v.Item2;
+                }
+            }
+            return (acum, obj);
         }
         #endregion
     }
