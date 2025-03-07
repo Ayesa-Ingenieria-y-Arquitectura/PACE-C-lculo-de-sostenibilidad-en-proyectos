@@ -13,7 +13,7 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 
-namespace Bc3_WPF
+namespace Bc3_WPF.Screens
 {
     /// <summary>
     /// Lógica de interacción para Page1.xaml

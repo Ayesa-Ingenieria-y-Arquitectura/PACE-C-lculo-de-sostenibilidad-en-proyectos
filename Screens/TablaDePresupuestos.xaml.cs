@@ -11,7 +11,7 @@ using LiveChartsCore.SkiaSharpView.Extensions;
 using LiveChartsCore.SkiaSharpView.WPF;
 using Bc3_WPF.Screens.Charts;
 
-namespace Bc3_WPF
+namespace Bc3_WPF.Screens
 {
     /// <summary>
     /// Lógica de interacción para Page1.xaml
