@@ -8,6 +8,9 @@
     <Compile Update="Screens\TablaDePresupuestos.xaml.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Update="Screens\Comparator.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Update="Window1.xaml.cs">
       <SubType>Code</SubType>
     </Compile>
@@ -17,6 +20,9 @@
       <SubType>Designer</SubType>
     </Page>
     <Page Update="Screens\TablaDePresupuestos.xaml">
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Update="Screens\Comparator.xaml">
       <SubType>Designer</SubType>
     </Page>
     <Page Update="Window1.xaml">
