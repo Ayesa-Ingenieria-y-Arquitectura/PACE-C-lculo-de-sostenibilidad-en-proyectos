@@ -6,14 +6,20 @@ using System.Text.Json;
 using Bc3_WPF.Backend.Auxiliar;
 using System.IO;
 using System.Windows.Controls;
+using LiveChartsCore;
+using LiveChartsCore.SkiaSharpView.Extensions;
+using LiveChartsCore.SkiaSharpView.WPF;
+using Bc3_WPF.Screens.Charts;
 
-namespace Bc3_WPF
+namespace Bc3_WPF.Screens
 {
     /// <summary>
     /// Lógica de interacción para Page1.xaml
     /// </summary>
     public partial class TablaDePresupuestos : System.Windows.Controls.UserControl
     {
+
+
         #region PROPIEDADES
         private Presupuesto? presupuesto;
         private List<KeyValuePair<string, List<Presupuesto>>> historial = new List<KeyValuePair<string, List<Presupuesto>>>();
@@ -24,10 +30,12 @@ namespace Bc3_WPF
         private decimal pages = 0;
         List<KeyValuePair<string, Presupuesto>> previous = [];
         string fileName;
+        Pie chartData;
 
         public TablaDePresupuestos()
         {
             InitializeComponent();
+
         }
         #endregion
 
@@ -58,16 +66,25 @@ namespace Bc3_WPF
                 {
                     currentData = presupuesto.hijos;
                 }
+                chartData = new Pie();
 
                 makePagination();
+                updateDoughtChart();
+                getMedidores();
 
                 TitleTable.Text = presupuesto.name;
+                Chart.Title = chartData.TitleChart;
+                PieChart.Title = chartData.TitlePie;
 
+                TableRectangle.Visibility = Visibility.Visible;
                 TitleTable.Visibility = Visibility.Visible;
                 SelectDB.Visibility = Visibility.Visible;
                 Tabla.Visibility = Visibility.Visible;
                 DB.Visibility = Visibility.Visible;
                 SelectDB.Visibility = Visibility.Visible;
+                PieChart.Visibility = Visibility.Visible;
+                Chart.Visibility = Visibility.Visible;
+
                 FileButton.Visibility = Visibility.Hidden;
 
                 Tabla.ItemsSource = showing;
@@ -88,6 +105,7 @@ namespace Bc3_WPF
                 currentData.AddRange(past);
                 currentData.Sort((a, i) => a.Id.CompareTo(i.Id));
                 makePagination();
+                updateDoughtChart();
                 Tabla.ItemsSource = showing;
 
             }
@@ -105,6 +123,7 @@ namespace Bc3_WPF
                 currentData = historial[historial.Count - 1].Value;
                 historial.Remove(historial[historial.Count - 1]);
                 makePagination();
+                updateDoughtChart();
                 Tabla.ItemsSource = showing;
             }
 
@@ -236,6 +255,9 @@ namespace Bc3_WPF
                 }
 
                 makePagination();
+                updateDoughtChart();
+                getMedidores();
+
                 Tabla.ItemsSource = showing;
                 SplitPopUp.IsOpen = false;
                 SaveButton.Visibility = Visibility.Visible;
@@ -270,6 +292,63 @@ namespace Bc3_WPF
                     }
                 }
             }
+        }
+        #endregion
+
+        #region CHARTS
+        private void updateDoughtChart()
+        {
+            List<Presupuesto> data = currentData.Where(e => e.outdated == null || e.outdated == false).ToList();
+            List<KeyValuePair<string, float?>> doughtData = data.Select(e => new KeyValuePair<string, float?>(e.Id, e.quantity)).ToList();
+            int v = data.Count;
+
+            Pie.setDoughtData(doughtData, chartData);
+            Pie.updateLineChart(v, chartData);
+            PieChart.Series = chartData.Series;
+            Chart.Series = chartData.Series2;
+
+            PieRectangle.Visibility = Visibility.Visible;
+            ChartRectangle.Visibility = Visibility.Visible;
+        }
+        #endregion
+
+        #region MEDIDORES
+        private void getMedidores()
+        {
+            HashSet<string> set = new HashSet<string>();
+            set.Add(presupuesto.Id);
+            
+            (float, HashSet<string>) var = getQuantity(presupuesto.hijos, 0, set);
+            int concepts = var.Item2.Count;
+            float quantities = var.Item1;
+            
+            Quantity.Text = quantities.ToString();
+            Concepts.Text = concepts.ToString();
+
+            Concepts.Visibility = Visibility.Visible;
+            ConceptTitle.Visibility = Visibility.Visible;
+            ConceptRectangle.Visibility = Visibility.Visible;
+            Quantity.Visibility = Visibility.Visible;
+            QuantityRectangle.Visibility = Visibility.Visible;
+            QuantityTitle.Visibility = Visibility.Visible;
+        }
+        private (float, HashSet<string>) getQuantity(List<Presupuesto> pr, float acum, HashSet<string> obj)
+        {
+            foreach(Presupuesto p in pr)
+            {
+                if (!obj.Contains(p.Id))
+                    obj.Add(p.Id);
+                if(p.quantity != null)
+                    acum += p.quantity.Value;
+                
+                if (p.hijos != null)
+                {
+                    (float, HashSet<string>) v = getQuantity(p.hijos, acum, obj);
+                    acum = v.Item1;
+                    obj = v.Item2;
+                }
+            }
+            return (acum, obj);
         }
         #endregion
     }

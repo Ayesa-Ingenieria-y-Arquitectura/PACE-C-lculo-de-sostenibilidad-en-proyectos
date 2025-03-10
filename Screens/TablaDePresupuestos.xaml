@@ -1,21 +1,42 @@
-﻿<UserControl x:Class="Bc3_WPF.TablaDePresupuestos"
+﻿<UserControl x:Class="Bc3_WPF.Screens.TablaDePresupuestos"
       xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
       xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
       xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
       xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
       xmlns:local="clr-namespace:Bc3_WPF"
+      xmlns:lvc="clr-namespace:LiveChartsCore.SkiaSharpView.WPF;assembly=LiveChartsCore.SkiaSharpView.WPF"
+      xmlns:vms="clr-namespace:Bc3_WPF.Screens.Charts"
       mc:Ignorable="d" 
       d:DesignHeight="450" d:DesignWidth="800">
 
+    <UserControl.DataContext>
+        <vms:Pie/>
+    </UserControl.DataContext>
+    
     <Grid>
+        
+        <!--Mediciones-->
+        <Rectangle Height="140" Width="300" Stroke="DarkGray" Margin="310,0,0,420" RadiusX="20" RadiusY="20" Name="ConceptRectangle" Visibility="Hidden"/>
+        <TextBlock Text="Total Number Of Concepts" Name="ConceptTitle" Margin="800,150,0,0" FontSize="20" FontWeight="Bold" Visibility="Hidden"/>
+        <TextBlock Name="Concepts" Margin="800,180,0,0" FontSize="20" FontWeight="Bold" Visibility="Hidden"/>
 
+        <Rectangle Height="140" Width="250" Stroke="DarkGray" Fill="Black" Margin="0,0,780,420" RadiusX="20" RadiusY="20" Name="QuantityRectangle" Visibility="Hidden"/>
+        <TextBlock Text="Total Quantity" Name="QuantityTitle" Margin="300,150,+0,0" FontSize="20" FontWeight="Bold" Foreground="White" Visibility="Hidden"/>
+        <TextBlock Name="Quantity" Margin="300,180,0,0" FontSize="20" FontWeight="Bold" Foreground="White" Visibility="Hidden"/>
         <!--Título-->
         <TextBlock Name="Titulo" Text="🗃️  Explore BC3 Tool" Margin="50,10,0,0" FontSize="20" FontWeight="Heavy"/>
+
+        <!--Gráficos-->
+        <Rectangle Height="250" Width="680" Stroke="DarkGray" Margin="0,60,420,0" RadiusX="20" RadiusY="20" Name="PieRectangle" Visibility="Hidden"/>
+        <lvc:CartesianChart Height="250" Width="680" Margin="0,50,430,0" Visibility="Hidden" Name="Chart"/>
+        <Rectangle Height="250" Width="400" Stroke="DarkGray" Margin="698,60,0,0" RadiusX="20" RadiusY="20" Name="ChartRectangle" Visibility="Hidden"/>
+        <lvc:PieChart Height="250" Width="400" Margin="700,60,0,0" Visibility="Hidden" Name="PieChart"/>
 
         <!-- Botón Selección de archivo -->
         <Button Name="FileButton"  Content="Select File" HorizontalAlignment="Center" VerticalAlignment="Center" Click="LoadBC3" />
 
 
+        <Rectangle Height="210" Width="1100" Stroke="DarkGray" Margin="0,550,0,0" RadiusX="20" RadiusY="20" Name="TableRectangle" Visibility="Hidden"/>
         <!-- Selección de Base de Datos -->
         <TextBlock Name="DB" Text="DataBase" FontSize="13" Margin="270,580,0,0" FontWeight="Bold" Visibility="Hidden"/>
         <ComboBox Name="SelectDB" HorizontalAlignment="Center"

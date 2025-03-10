@@ -1,0 +1,229 @@
+﻿<UserControl x:Class="Bc3_WPF.Screens.Comparator"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:Bc3_WPF.Screens"
+             mc:Ignorable="d" 
+             d:DesignHeight="450" d:DesignWidth="800">
+    <Grid>
+        <!--Título-->
+        <TextBlock Name="Titulo" Text="📑  Compare BC3" Margin="50,10,0,0" FontSize="20" FontWeight="Heavy"/>
+
+        <!-- Botón Selección de archivo -->
+        <Button Name="FileButton"  Content="Select File" HorizontalAlignment="Center" VerticalAlignment="Center" Click="SelectFiles" Panel.ZIndex="5" />
+
+
+        <!-- Tabla 1-->
+        <TextBlock Name="TitleTabla1" Visibility="Visible" Margin="270,360,0,0" FontStyle="Italic"
+       FontWeight="ExtraBold" FontSize="15" HorizontalAlignment="Center"/>
+        <DataGrid Name="Tabla1" AutoGenerateColumns="False" Visibility="Hidden"
+      CanUserAddRows="False" CanUserDeleteRows="False" Margin="110,100,110,14"
+      Height="121" Width="1020" IsReadOnly="True">
+            <DataGrid.Columns>
+                <DataGridTextColumn Header="Id" Binding="{Binding Id}" Width="100"/>
+                <DataGridTextColumn Header="Name" Binding="{Binding name}" Width="660"/>
+                <DataGridTextColumn Header="Date" Binding="{Binding fecha}" Width="80"/>
+                <DataGridTextColumn Header="Quantity" Binding="{Binding quantity}" Width="70"/>
+                <DataGridTemplateColumn Header="Options" Width="80">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <Grid>
+                                <Button x:Name="buttonHijos1" Content="View Children" Click="handleHijos" Visibility="Visible"
+                            BorderThickness="0" Background="Transparent" Foreground="#0000EE" >
+                                    <Button.Template>
+                                        <ControlTemplate TargetType="Button">
+                                            <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="0">
+                                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                            </Border>
+                                        </ControlTemplate>
+                                    </Button.Template>
+                                </Button>
+                                <Button x:Name="nullHijos1" Content="Split Concept" Click="handleSplit" Visibility="Hidden"
+                            BorderThickness="0" Background="Transparent" Foreground="#0000EE" >
+                                    <Button.Template>
+                                        <ControlTemplate TargetType="Button">
+                                            <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="0">
+                                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                            </Border>
+                                        </ControlTemplate>
+                                    </Button.Template>
+                                </Button>
+                                <TextBlock x:Name="Past1" Visibility="Hidden" Text="Previous"/>
+                            </Grid>
+                            <DataTemplate.Triggers>
+                                <DataTrigger Binding="{Binding hijos}" Value="{x:Null}" >
+                                    <Setter TargetName="buttonHijos1" Property="Visibility" Value="Hidden" />
+                                    <Setter TargetName="nullHijos1" Property="Visibility" Value="Visible" />
+                                </DataTrigger>
+                                <DataTrigger Binding="{Binding outdated}" Value="True">
+                                    <Setter TargetName="buttonHijos1" Property="Visibility" Value="Hidden" />
+                                    <Setter TargetName="nullHijos1" Property="Visibility" Value="Hidden" />
+                                    <Setter TargetName="Past1" Property="Visibility" Value="Visible" />
+                                </DataTrigger>
+                            </DataTemplate.Triggers>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+            </DataGrid.Columns>
+            <DataGrid.RowStyle>
+                <Style TargetType="DataGridRow">
+                    <Style.Triggers>
+                        <DataTrigger Binding="{Binding outdated}" Value="True">
+                            <Setter Property="Background" Value="Red"/>
+                            <Setter Property="Foreground" Value="White"/>
+                        </DataTrigger>
+                    </Style.Triggers>
+                </Style>
+            </DataGrid.RowStyle>
+        </DataGrid>
+
+        <!-- Boton de Historial -->
+        <Button Name="BackButton1" Content="🔙" HorizontalAlignment="Center" VerticalAlignment="Center"
+    Visibility="Hidden" Click="BackButtonClick" Margin="960,235,0,0" Background="Transparent"
+    FontSize="25" BorderThickness="0" Panel.ZIndex="1" BorderBrush="Transparent">
+            <Button.Template>
+                <ControlTemplate TargetType="Button">
+                    <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="1">
+                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    </Border>
+                </ControlTemplate>
+            </Button.Template>
+        </Button>
+
+        <!-- Boton Guardar -->
+        <Button Name="SaveButton1" Content="Descargar" HorizontalAlignment="Center" VerticalAlignment="Center"
+Visibility="Hidden" Click="SaveButtonClick" Margin="-925,715,0,0" Background="Transparent"
+FontSize="15" BorderThickness="1" Panel.ZIndex="1" FontWeight="Bold"/>
+
+        <!-- Control de la Página -->
+        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Bottom" Visibility="Hidden"
+        Margin="0,0,0,260" Panel.ZIndex="1" Name="Paginator1">
+            <Button Content="◀️" Click="PreviousPage" Background="Transparent" BorderThickness="0" Name="Previous1">
+                <Button.Template>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="0">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                    </ControlTemplate>
+                </Button.Template>
+            </Button>
+            <TextBlock Name="PageNumber1" VerticalAlignment="Center" Margin="10"/>
+            <Button Content="▶️" Click="NextPage" Background="Transparent" BorderThickness="0" Name="Next1">
+                <Button.Template>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="0">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                    </ControlTemplate>
+                </Button.Template>
+            </Button>
+        </StackPanel>
+
+        <!-- Tabla 2 -->
+        <TextBlock Name="TitleTabla2" Visibility="Visible" Margin="270,600,0,0" FontStyle="Italic"
+       FontWeight="ExtraBold" FontSize="15"/>
+        <DataGrid Name="Tabla2" AutoGenerateColumns="False" Visibility="Hidden"
+      CanUserAddRows="False" CanUserDeleteRows="False" Margin="110,580,110,14"
+      Height="121" Width="1020" IsReadOnly="True">
+            <DataGrid.Columns>
+                <DataGridTextColumn Header="Id" Binding="{Binding Id}" Width="100"/>
+                <DataGridTextColumn Header="Name" Binding="{Binding name}" Width="660"/>
+                <DataGridTextColumn Header="Date" Binding="{Binding fecha}" Width="80"/>
+                <DataGridTextColumn Header="Quantity" Binding="{Binding quantity}" Width="70"/>
+                <DataGridTemplateColumn Header="Options" Width="80">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <Grid>
+                                <Button x:Name="buttonHijos2" Content="View Children" Click="handleHijos" Visibility="Visible"
+                            BorderThickness="0" Background="Transparent" Foreground="#0000EE" >
+                                    <Button.Template>
+                                        <ControlTemplate TargetType="Button">
+                                            <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="0">
+                                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                            </Border>
+                                        </ControlTemplate>
+                                    </Button.Template>
+                                </Button>
+                                <Button x:Name="nullHijos2" Content="Split Concept" Click="handleSplit" Visibility="Hidden"
+                            BorderThickness="0" Background="Transparent" Foreground="#0000EE" >
+                                    <Button.Template>
+                                        <ControlTemplate TargetType="Button">
+                                            <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="0">
+                                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                            </Border>
+                                        </ControlTemplate>
+                                    </Button.Template>
+                                </Button>
+                                <TextBlock x:Name="Past2" Visibility="Hidden" Text="Previous"/>
+                            </Grid>
+                            <DataTemplate.Triggers>
+                                <DataTrigger Binding="{Binding hijos}" Value="{x:Null}" >
+                                    <Setter TargetName="buttonHijos2" Property="Visibility" Value="Hidden" />
+                                    <Setter TargetName="nullHijos2" Property="Visibility" Value="Visible" />
+                                </DataTrigger>
+                                <DataTrigger Binding="{Binding outdated}" Value="True">
+                                    <Setter TargetName="buttonHijos2" Property="Visibility" Value="Hidden" />
+                                    <Setter TargetName="nullHijos2" Property="Visibility" Value="Hidden" />
+                                    <Setter TargetName="Past2" Property="Visibility" Value="Visible" />
+                                </DataTrigger>
+                            </DataTemplate.Triggers>
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+            </DataGrid.Columns>
+            <DataGrid.RowStyle>
+                <Style TargetType="DataGridRow">
+                    <Style.Triggers>
+                        <DataTrigger Binding="{Binding outdated}" Value="True">
+                            <Setter Property="Background" Value="Red"/>
+                            <Setter Property="Foreground" Value="White"/>
+                        </DataTrigger>
+                    </Style.Triggers>
+                </Style>
+            </DataGrid.RowStyle>
+        </DataGrid>
+
+        <!-- Boton de Historial -->
+        <Button Name="BackButton2" Content="🔙" HorizontalAlignment="Center" VerticalAlignment="Center"
+    Visibility="Hidden" Click="BackButtonClick" Margin="960,715,0,0" Background="Transparent"
+    FontSize="25" BorderThickness="0" Panel.ZIndex="1" BorderBrush="Transparent">
+            <Button.Template>
+                <ControlTemplate TargetType="Button">
+                    <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="1">
+                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    </Border>
+                </ControlTemplate>
+            </Button.Template>
+        </Button>
+
+        <!-- Boton Guardar -->
+        <Button Name="SaveButton2" Content="Descargar" HorizontalAlignment="Center" VerticalAlignment="Center"
+Visibility="Hidden" Click="SaveButtonClick" Margin="-925,715,0,0" Background="Transparent"
+FontSize="15" BorderThickness="1" Panel.ZIndex="1" FontWeight="Bold"/>
+
+        <!-- Control de la Página -->
+        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Bottom" Visibility="Hidden"
+        Margin="0,0,0,20" Panel.ZIndex="1" Name="Paginator2">
+            <Button Content="◀️" Click="PreviousPage" Background="Transparent" BorderThickness="0" Name="Previous2">
+                <Button.Template>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="0">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                    </ControlTemplate>
+                </Button.Template>
+            </Button>
+            <TextBlock Name="PageNumber2" VerticalAlignment="Center" Margin="10"/>
+            <Button Content="▶️" Click="NextPage" Background="Transparent" BorderThickness="0" Name="Next2">
+                <Button.Template>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="0">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                    </ControlTemplate>
+                </Button.Template>
+            </Button>
+        </StackPanel>
+    </Grid>
+</UserControl>

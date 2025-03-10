@@ -23,6 +23,7 @@ HorizontalAlignment="Left" VerticalAlignment="Top" x:Name="MenuButton">
             <Button Content="≡" Height="30" Width="30" Background="LightGray" BorderThickness="0" FontSize="20" Click="DisplayMenu"/>
             <Button Content="🏠" Height="30" Width="30" BorderThickness="0" Background="LightGray" Click="HomeWindows"/>
             <Button Content="📂" Height="30" Width="30" BorderThickness="0" Background="LightGray" Click="newFile"/>
+            <Button Content="📑" Height="30" Width="30" BorderThickness="0" Background="LightGray" Click="CompareFiles"/>
         </StackPanel>
         
         <ContentControl x:Name="MainContent"/>

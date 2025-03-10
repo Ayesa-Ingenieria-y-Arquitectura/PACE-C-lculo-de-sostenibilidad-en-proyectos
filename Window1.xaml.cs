@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Bc3_WPF.Screens;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -49,6 +50,11 @@ namespace Bc3_WPF
         private void HomeWindows(object sender, RoutedEventArgs e)
         {
             MainContent.Content = new Home();
+        }
+
+        private void CompareFiles(object sender, RoutedEventArgs e)
+        {
+            MainContent.Content = new Comparator();
         }
         #endregion
     }
