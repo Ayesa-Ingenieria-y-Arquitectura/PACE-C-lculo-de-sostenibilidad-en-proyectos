@@ -1,48 +1,37 @@
-﻿using System.Windows;
-
-using Bc3_WPF.backend.Services;
-using Bc3_WPF.backend.Modelos;
-using System.Text.Json;
-using Bc3_WPF.Backend.Auxiliar;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
+using System.Windows;
 using System.Windows.Controls;
-using LiveChartsCore;
-using LiveChartsCore.SkiaSharpView.Extensions;
-using LiveChartsCore.SkiaSharpView.WPF;
+using Bc3_WPF.backend.Modelos;
+using Bc3_WPF.backend.Services;
+using Bc3_WPF.Backend.Auxiliar;
 using Bc3_WPF.Screens.Charts;
+using LiveChartsCore.SkiaSharpView.WPF;
+using Microsoft.Win32;
+using System.Windows.Forms;
 
 namespace Bc3_WPF.Screens
 {
-    /// <summary>
-    /// Lógica de interacción para Page1.xaml
-    /// </summary>
     public partial class TablaDePresupuestos : System.Windows.Controls.UserControl
     {
-
-
-        #region PROPIEDADES
         private Presupuesto? presupuesto;
-        private List<KeyValuePair<string, List<Presupuesto>>> historial = new List<KeyValuePair<string, List<Presupuesto>>>();
-        private List<Presupuesto> currentData = new List<Presupuesto>();
+        private List<KeyValuePair<string, List<Presupuesto>>> historial = new();
+        private List<Presupuesto> currentData = new();
+        private List<Presupuesto> showing = new();
+        private List<KeyValuePair<string, Presupuesto>> previous = new();
         private int pageNumber = 1;
-        private int RowsPerPage = 5;
-        private List<Presupuesto> showing = new List<Presupuesto>();
-        private decimal pages = 0;
-        List<KeyValuePair<string, Presupuesto>> previous = [];
-        string fileName;
-        Pie chartData;
+        private const int RowsPerPage = 5;
+        private decimal pages;
+        private string fileName;
+        private Pie chartData;
 
-        public TablaDePresupuestos()
-        {
-            InitializeComponent();
+        public TablaDePresupuestos() => InitializeComponent();
 
-        }
-        #endregion
-
-        #region TABLA
         private void LoadBC3(object sender, RoutedEventArgs e)
         {
-            Microsoft.Win32.OpenFileDialog ofd = new Microsoft.Win32.OpenFileDialog
+            Microsoft.Win32.OpenFileDialog ofd = new()
             {
                 Title = "Select a .bc3 or .json File",
                 Filter = "All Supported Files (*.bc3;*.json)|*.bc3;*.json"
@@ -50,69 +39,46 @@ namespace Bc3_WPF.Screens
 
             if (ofd.ShowDialog() == true)
             {
-                fileName = ofd.SafeFileName.Split(".")[0];
-                Titulo.Text = $"🗃️  File: {fileName}";
+                fileName = Path.GetFileNameWithoutExtension(ofd.SafeFileName);
                 string filePath = ofd.FileName;
-                if (filePath.EndsWith(".bc3"))
-                {
-                    presupuesto = presupuestoService.loadFromBC3(filePath);
-                }
-                else
-                {
-                    presupuesto = presupuestoService.loadFromJson(filePath);
-                }
-
-                if (presupuesto.hijos != null)
-                {
-                    currentData = presupuesto.hijos;
-                }
+                presupuesto = filePath.EndsWith(".bc3") ? presupuestoService.loadFromBC3(filePath) : presupuestoService.loadFromJson(filePath);
+                
+                currentData = presupuesto?.hijos ?? new();
                 chartData = new Pie();
 
                 makePagination();
+                SetupUI();
                 updateDoughtChart();
                 getMedidores();
-
-                TitleTable.Text = presupuesto.name;
-                Chart.Title = chartData.TitleChart;
-                PieChart.Title = chartData.TitlePie;
-
-                TableRectangle.Visibility = Visibility.Visible;
-                TitleTable.Visibility = Visibility.Visible;
-                SelectDB.Visibility = Visibility.Visible;
-                Tabla.Visibility = Visibility.Visible;
-                DB.Visibility = Visibility.Visible;
-                SelectDB.Visibility = Visibility.Visible;
-                PieChart.Visibility = Visibility.Visible;
-                Chart.Visibility = Visibility.Visible;
-
-                FileButton.Visibility = Visibility.Hidden;
-
-                Tabla.ItemsSource = showing;
             }
+        }
+
+        private void SetupUI()
+        {
+            Titulo.Text = $"🗃️  File: {fileName}";
+            TitleTable.Text = presupuesto?.name;
+            Chart.Title = chartData.TitleChart;
+            PieChart.Title = chartData.TitlePie;
+            
+            RectangleInfo.Visibility = Visibility.Visible;
+            ChartSection.Visibility = Visibility.Visible;
+            TableSection.Visibility = Visibility.Visible;
+            Paginator.Visibility = Visibility.Visible;
+            FileButton.Visibility = Visibility.Hidden;
+            Tabla.ItemsSource = showing;
         }
 
         private void handleHijos(object sender, RoutedEventArgs e)
         {
-            var button = (System.Windows.Controls.Button)sender;
-            Presupuesto Item = (Presupuesto)button.DataContext;
-
-            if (Item.hijos != null)
+            if (sender is System.Windows.Controls.Button button && button.DataContext is Presupuesto item && item.hijos != null)
             {
-                List<Presupuesto> past = previous.Where(p => p.Key == Item.Id).Select(p => p.Value).ToList();
-                historial.Add(new KeyValuePair<String, List<Presupuesto>>(Item.Id, currentData));
-                currentData = [];
-                currentData.AddRange(Item.hijos);
-                currentData.AddRange(past);
-                currentData.Sort((a, i) => a.Id.CompareTo(i.Id));
+                historial.Add(new(item.Id, currentData));
+                currentData = item.hijos.Concat(previous.Where(p => p.Key == item.Id).Select(p => p.Value)).OrderBy(p => p.Id).ToList();
+                
                 makePagination();
                 updateDoughtChart();
                 Tabla.ItemsSource = showing;
-
-            }
-
-            if (historial.Count > 0)
-            {
-                BackButton.Visibility = Visibility.Visible;
+                BackButton.Visibility = historial.Count > 0 ? Visibility.Visible : Visibility.Hidden;
             }
         }
 
@@ -120,236 +86,153 @@ namespace Bc3_WPF.Screens
         {
             if (historial.Count > 0)
             {
-                currentData = historial[historial.Count - 1].Value;
-                historial.Remove(historial[historial.Count - 1]);
+                currentData = historial.Last().Value;
+                historial.RemoveAt(historial.Count - 1);
                 makePagination();
                 updateDoughtChart();
                 Tabla.ItemsSource = showing;
-            }
-
-            if (historial.Count == 0)
-            {
-                BackButton.Visibility = Visibility.Hidden;
+                BackButton.Visibility = historial.Count == 0 ? Visibility.Hidden : Visibility.Visible;
             }
         }
-        #endregion
 
-        #region PAGINACIÓN
-        private void PreviousPage(object sender, RoutedEventArgs e)
+        private void ChangePage(int step)
         {
-            if (pageNumber > 1)
-            {
-                pageNumber = pageNumber - 1;
-                int lowerbound = (pageNumber - 1) * RowsPerPage;
-
-                showing = currentData.Slice(lowerbound, RowsPerPage);
-                Tabla.ItemsSource = showing;
-                PageNumber.Text = $"Page {pageNumber} / {pages}";
-            }
+            pageNumber += step;
+            int lowerBound = (pageNumber - 1) * RowsPerPage;
+            showing = currentData.Skip(lowerBound).Take(RowsPerPage).ToList();
+            Tabla.ItemsSource = showing;
+            PageNumber.Text = $"Page {pageNumber} / {pages}";
         }
 
-        private void NextPage(object sender, RoutedEventArgs e)
-        {
-            if (pageNumber != pages)
-            {
-                int lowerbound = pageNumber * RowsPerPage;
-                pageNumber = pageNumber + 1;
-                int upperbound = pageNumber * RowsPerPage;
-
-                if (currentData.Count < upperbound)
-                {
-                    int sobrante = currentData.Count - lowerbound;
-                    showing = currentData.Slice(lowerbound, sobrante);
-                }
-                else
-                {
-                    showing = currentData.Slice(lowerbound, RowsPerPage);
-                }
-
-                Tabla.ItemsSource = showing;
-                PageNumber.Text = $"Page {pageNumber} / {pages}";
-            }
-        }
+        private void PreviousPage(object sender, RoutedEventArgs e) { if (pageNumber > 1) ChangePage(-1); }
+        private void NextPage(object sender, RoutedEventArgs e) { if (pageNumber < pages) ChangePage(1); }
 
         private void makePagination()
         {
-            decimal p = (decimal)currentData.Count / (decimal)RowsPerPage;
-            pages = Math.Ceiling(p);
+            pages = Math.Ceiling((decimal)currentData.Count / RowsPerPage);
             pageNumber = 1;
-
-            if (pages == 1)
-            {
-                showing = currentData;
-                Paginator.Visibility = Visibility.Hidden;
-            }
-            else
-            {
-                showing = currentData.Slice(0, RowsPerPage);
-                Paginator.Visibility = Visibility.Visible;
-                PageNumber.Text = $"Page {pageNumber} / {pages}";
-            }
+            showing = currentData.Take(RowsPerPage).ToList();
+            Next.Visibility = pages > 1 ? Visibility.Visible : Visibility.Hidden;
+            Previous.Visibility = pages > 1 ? Visibility.Visible : Visibility.Hidden;
+            PageNumber.Visibility = pages > 1 ? Visibility.Visible : Visibility.Hidden;
+            PageNumber.Text = $"Page {pageNumber} / {pages}";
         }
-        #endregion
 
-        #region SPLIT
         private void handleSplit(object sender, RoutedEventArgs e)
         {
-            var button = (System.Windows.Controls.Button)sender;
-            Presupuesto Item = (Presupuesto)button.DataContext;
-            Presupuesto pr = new Presupuesto { Id = Item.Id, name = Item.name, quantity = Item.quantity, fecha = Item.fecha };
-            List<Presupuesto> p = new List<Presupuesto>();
-            p.Add(pr);
-
-            SplitPopUp.IsOpen = !SplitPopUp.IsOpen;
-            SplitTable.ItemsSource = p;
+            if (sender is System.Windows.Controls.Button button && button.DataContext is Presupuesto item)
+            {
+                SplitTable.ItemsSource = new List<Presupuesto> { new() { Id = item.Id, name = item.name, quantity = item.quantity, fecha = item.fecha } };
+                SplitPopUp.IsOpen = !SplitPopUp.IsOpen;
+            }
         }
 
-        private void CloseSplit(object sender, RoutedEventArgs e)
-        {
-            SplitPopUp.IsOpen = false;
-        }
+        private void CloseSplit(object sender, RoutedEventArgs e) => SplitPopUp.IsOpen = false;
 
         private void MakeSplit(object sender, RoutedEventArgs e)
         {
-            List<Presupuesto> p = (List<Presupuesto>)SplitTable.ItemsSource;
-            string Id = p[0].Id;
-            Presupuesto og = p[0];
-            p.Remove(p[0]);
+            if (SplitTable.ItemsSource is List<Presupuesto> splitData && splitData.Any())
+            {
+                Presupuesto original = splitData[0];
+                splitData.RemoveAt(0);
+                
+                string parentId = historial.Count == 0 ? presupuesto?.Id ?? "" : historial.Last().Key;
+                original.outdated = true;
+                splitData.ForEach(p => p.fecha = DateOnly.FromDateTime(DateTime.Now));
 
-            string fatherId;
-            if (historial.Count == 0)
-            {
-                fatherId = presupuesto.Id;
-            }
-            else
-            {
-                fatherId = historial[historial.Count - 1].Key;
-            }
-            Presupuesto obj = og;
-            obj.outdated = true;
-
-            foreach (Presupuesto pres in p)
-            {
-                pres.fecha = DateOnly.FromDateTime(DateTime.Now);
-            }
-
-            foreach (Presupuesto pres in p)
-            {
-                pres.fecha = DateOnly.FromDateTime(DateTime.Now);
-            }
-
-            if (og.quantity == p.Sum(o => o.quantity))
-            {
-                KeyValuePair<string, Presupuesto> pre = new KeyValuePair<string, Presupuesto>(fatherId, obj);
-                previous.Add(pre);
-                Presupuesto res = Romper.change(presupuesto, historial, p, Id, true);
-                presupuesto = res;
-                historial = new List<KeyValuePair<string, List<Presupuesto>>>();
-                if (presupuesto.hijos != null)
+                if (original.quantity == splitData.Sum(p => p.quantity))
                 {
-                    List<Presupuesto> past = previous.Where(p => p.Key == presupuesto.Id).Select(p => p.Value).ToList();
-                    currentData = [];
-                    currentData.AddRange(presupuesto.hijos);
-                    currentData.AddRange(past);
-                    currentData.Sort((a, i) => a.Id.CompareTo(i.Id));
+                    previous.Add(new(parentId, original));
+                    presupuesto = Romper.change(presupuesto, historial, splitData, original.Id, true);
+                    historial.Clear();
+                    currentData = presupuesto?.hijos?.Concat(previous.Where(p => p.Key == presupuesto.Id).Select(p => p.Value)).OrderBy(p => p.Id).ToList() ?? new();
+                    
+                    makePagination();
+                    updateDoughtChart();
+                    getMedidores();
+                    Tabla.ItemsSource = showing;
+                    SplitPopUp.IsOpen = false;
+                    SaveButton.Visibility = Visibility.Visible;
+                    BackButton.Visibility = Visibility.Hidden;
                 }
-
-                makePagination();
-                updateDoughtChart();
-                getMedidores();
-
-                Tabla.ItemsSource = showing;
-                SplitPopUp.IsOpen = false;
-                SaveButton.Visibility = Visibility.Visible;
-            }
-            else
-            {
-                SplitPopUp.IsOpen = false;
-                System.Windows.MessageBox.Show("The sum of the new quantities doesnt match the original quantity", "Alert", MessageBoxButton.OK, MessageBoxImage.Error);
+                else
+                {
+                    SplitPopUp.IsOpen = false;
+                    System.Windows.MessageBox.Show("The sum of the new quantities doesn't match the original quantity", "Alert", MessageBoxButton.OK, MessageBoxImage.Error);
+                }
             }
         }
-        #endregion
 
-        #region SAVE
         private void SaveButtonClick(object sender, RoutedEventArgs e)
         {
-            using (var dialog = new FolderBrowserDialog())
+            using FolderBrowserDialog dialog = new() { Description = "Choose a folder to save the JSON file" };
+            if (dialog.ShowDialog() == DialogResult.OK)
             {
-                dialog.Description = "Choose a folder to save the JSON file";
-
-                if (dialog.ShowDialog() == System.Windows.Forms.DialogResult.OK)
+                string filePath = Path.Combine(dialog.SelectedPath, $"{fileName}-1.json");
+                try
                 {
-                    string filePath = Path.Combine(dialog.SelectedPath, $"{fileName}-1.json");
-
-                    try
-                    {
-                        presupuestoService.saveJson(filePath, presupuesto);
-                        System.Windows.MessageBox.Show($"file saved in {filePath}", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
-                    }
-                    catch (Exception ex)
-                    {
-                        System.Windows.MessageBox.Show($"Failed at saving file: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-                    }
+                    presupuestoService.saveJson(filePath, presupuesto);
+                    System.Windows.MessageBox.Show($"File saved in {filePath}", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
+                }
+                catch (Exception ex)
+                {
+                    System.Windows.MessageBox.Show($"Failed at saving file: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
                 }
             }
         }
-        #endregion
 
-        #region CHARTS
         private void updateDoughtChart()
         {
-            List<Presupuesto> data = currentData.Where(e => e.outdated == null || e.outdated == false).ToList();
-            List<KeyValuePair<string, float?>> doughtData = data.Select(e => new KeyValuePair<string, float?>(e.Id, e.quantity)).ToList();
-            int v = data.Count;
+            var validData = currentData.Where(e => e.outdated != true).ToList();
+            var doughtData = validData.Select(e => new KeyValuePair<string, float?>(e.Id, e.quantity)).ToList();
+            int dataCount = validData.Count;
 
             Pie.setDoughtData(doughtData, chartData);
-            Pie.updateLineChart(v, chartData);
+            Pie.updateLineChart(dataCount, chartData);
             PieChart.Series = chartData.Series;
             Chart.Series = chartData.Series2;
 
-            PieRectangle.Visibility = Visibility.Visible;
-            ChartRectangle.Visibility = Visibility.Visible;
+            SetChartVisibility(true);
         }
-        #endregion
 
-        #region MEDIDORES
+        private void SetChartVisibility(bool isVisible)
+        {
+            PieRectangle.Visibility = isVisible ? Visibility.Visible : Visibility.Hidden;
+            ChartRectangle.Visibility = isVisible ? Visibility.Visible : Visibility.Hidden;
+        }
+
         private void getMedidores()
         {
-            HashSet<string> set = new HashSet<string>();
-            set.Add(presupuesto.Id);
-            
-            (float, HashSet<string>) var = getQuantity(presupuesto.hijos, 0, set);
-            int concepts = var.Item2.Count;
-            float quantities = var.Item1;
-            
-            Quantity.Text = quantities.ToString();
-            Concepts.Text = concepts.ToString();
+            var processedData = CalculateQuantityAndConcepts(presupuesto?.hijos, new HashSet<string> { presupuesto?.Id ?? string.Empty });
 
-            Concepts.Visibility = Visibility.Visible;
-            ConceptTitle.Visibility = Visibility.Visible;
-            ConceptRectangle.Visibility = Visibility.Visible;
-            Quantity.Visibility = Visibility.Visible;
-            QuantityRectangle.Visibility = Visibility.Visible;
-            QuantityTitle.Visibility = Visibility.Visible;
+            Quantity.Text = processedData.TotalQuantity.ToString();
+            Concepts.Text = processedData.ConceptCount.ToString();
+            SetMedidorVisibility(true);
         }
-        private (float, HashSet<string>) getQuantity(List<Presupuesto> pr, float acum, HashSet<string> obj)
+
+        private (float TotalQuantity, int ConceptCount) CalculateQuantityAndConcepts(List<Presupuesto>? presupuestos, HashSet<string> uniqueConcepts)
         {
-            foreach(Presupuesto p in pr)
+            if (presupuestos == null) return (0, 0);
+
+            float totalQuantity = 0;
+            foreach (var p in presupuestos)
             {
-                if (!obj.Contains(p.Id))
-                    obj.Add(p.Id);
-                if(p.quantity != null)
-                    acum += p.quantity.Value;
-                
-                if (p.hijos != null)
-                {
-                    (float, HashSet<string>) v = getQuantity(p.hijos, acum, obj);
-                    acum = v.Item1;
-                    obj = v.Item2;
-                }
+                uniqueConcepts.Add(p.Id);
+                totalQuantity += p.quantity ?? 0;
+                var subResult = CalculateQuantityAndConcepts(p.hijos, uniqueConcepts);
+                totalQuantity += subResult.TotalQuantity;
             }
-            return (acum, obj);
+            return (totalQuantity, uniqueConcepts.Count);
         }
-        #endregion
+
+        private void SetMedidorVisibility(bool isVisible)
+        {
+            Concepts.Visibility = isVisible ? Visibility.Visible : Visibility.Hidden;
+            ConceptTitle.Visibility = isVisible ? Visibility.Visible : Visibility.Hidden;
+            ConceptRectangle.Visibility = isVisible ? Visibility.Visible : Visibility.Hidden;
+            Quantity.Visibility = isVisible ? Visibility.Visible : Visibility.Hidden;
+            QuantityRectangle.Visibility = isVisible ? Visibility.Visible : Visibility.Hidden;
+            QuantityTitle.Visibility = isVisible ? Visibility.Visible : Visibility.Hidden;
+        }
     }
 }
