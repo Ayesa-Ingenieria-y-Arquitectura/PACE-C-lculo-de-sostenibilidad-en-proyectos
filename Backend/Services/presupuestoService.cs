@@ -2,6 +2,8 @@
 using Bc3_WPF.backend.Auxiliar;
 using System.IO;
 using System.Text.Json;
+using System.Diagnostics;
+using System.Xml;
 
 namespace Bc3_WPF.backend.Services
 {
@@ -92,6 +94,17 @@ namespace Bc3_WPF.backend.Services
             {
                 throw new NullReferenceException("No existe un presupuesto a descargar");
             }
+        }
+
+        public static List<string> getConceptsSinHijos(string filePath)
+        {
+            List<Concepto> lectura = Parse.BC3ToList(filePath);
+            List<string> res = lectura
+            .Where(c => c.descomposicion == null || c.descomposicion.Count == 0)
+            .Select(c => c.Id)
+            .ToList();
+
+            return res;
         }
     }
 

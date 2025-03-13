@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "dgSpecHash": "maU2dOgnWxk=",
+  "dgSpecHash": "/3NStVSbzN4=",
   "success": true,
   "projectFilePath": "C:\\Users\\prodriguezsa\\source\\repos\\Bc3-WPF\\Bc3-WPF.csproj",
   "expectedPackageFiles": [
@@ -12,7 +12,10 @@
     "C:\\Users\\prodriguezsa\\.nuget\\packages\\livechartscore.skiasharpview.wpf\\2.0.0-rc5.4\\livechartscore.skiasharpview.wpf.2.0.0-rc5.4.nupkg.sha512",
     "C:\\Users\\prodriguezsa\\.nuget\\packages\\materialdesigncolors\\5.2.1\\materialdesigncolors.5.2.1.nupkg.sha512",
     "C:\\Users\\prodriguezsa\\.nuget\\packages\\materialdesignthemes\\5.2.1\\materialdesignthemes.5.2.1.nupkg.sha512",
+    "C:\\Users\\prodriguezsa\\.nuget\\packages\\microsoft.extensions.dependencyinjection.abstractions\\8.0.2\\microsoft.extensions.dependencyinjection.abstractions.8.0.2.nupkg.sha512",
+    "C:\\Users\\prodriguezsa\\.nuget\\packages\\microsoft.extensions.logging.abstractions\\8.0.2\\microsoft.extensions.logging.abstractions.8.0.2.nupkg.sha512",
     "C:\\Users\\prodriguezsa\\.nuget\\packages\\microsoft.xaml.behaviors.wpf\\1.1.39\\microsoft.xaml.behaviors.wpf.1.1.39.nupkg.sha512",
+    "C:\\Users\\prodriguezsa\\.nuget\\packages\\npgsql\\9.0.3\\npgsql.9.0.3.nupkg.sha512",
     "C:\\Users\\prodriguezsa\\.nuget\\packages\\opentk\\3.3.1\\opentk.3.3.1.nupkg.sha512",
     "C:\\Users\\prodriguezsa\\.nuget\\packages\\opentk.glwpfcontrol\\3.3.0\\opentk.glwpfcontrol.3.3.0.nupkg.sha512",
     "C:\\Users\\prodriguezsa\\.nuget\\packages\\skiasharp\\3.116.1\\skiasharp.3.116.1.nupkg.sha512",

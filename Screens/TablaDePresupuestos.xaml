@@ -18,18 +18,14 @@
     <Grid>
         <!-- Define top-level Rows -->
         <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="auto"/>
             <!-- Title + Select File -->
-            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="auto"/>
             <!-- Rectangles: Quantity & Concepts -->
-            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="auto"/>
             <!-- Charts: Cartesian & Pie -->
-            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="auto"/>
             <!-- Table + DB Selection -->
-            <RowDefinition Height="Auto"/>
-            <!-- Paginator, Back & Save -->
-            <RowDefinition Height="*"/>
-            <!-- Extra space if needed -->
         </Grid.RowDefinitions>
 
         <!-- Define top-level Columns -->
@@ -54,10 +50,12 @@
 
         <!-- Button Selección de archivo -->
         <Button Name="FileButton"
-                Grid.Row="0" Grid.Column="2"
+                Grid.Row="0" Grid.RowSpan="5"
+                Grid.Column="0" Grid.ColumnSpan="3"
                 Content="Select File"
                 VerticalAlignment="Center"
-                HorizontalAlignment="Right"
+                HorizontalAlignment="Center"
+                FontSize="40"
                 Margin="10"
                 Click="LoadBC3"/>
 
@@ -66,7 +64,7 @@
 
         <!-- Wrap both rectangles in a StackPanel so they can sit side-by-side -->
         <StackPanel Grid.Row="1" Grid.Column="1"
-                    Margin="0,0,100,0"
+                    Margin="100,0,0,0"
                     Orientation="Horizontal"
                     HorizontalAlignment="Center"
                     Visibility="Hidden"
@@ -79,7 +77,7 @@
                            Fill="Black"
                            RadiusX="20" RadiusY="20"/>
                 <TextBlock x:Name="QuantityTitle"
-                           Text="Total Quantity"
+                           Text="Total Carbono"
                            FontSize="20"
                            FontWeight="Bold"
                            Foreground="White"
@@ -100,7 +98,7 @@
                            Stroke="DarkGray"
                            RadiusX="20" RadiusY="20"/>
                 <TextBlock x:Name="ConceptTitle"
-                           Text="Total Number Of Concepts"
+                           Text="Total Agua"
                            FontSize="20"
                            FontWeight="Bold"
                            HorizontalAlignment="Center"
@@ -118,7 +116,8 @@
 
         <!-- A grid to hold both charts side-by-side -->
         <Grid Grid.Row="2" Grid.Column="1" Grid.ColumnSpan="2" 
-              Visibility="Hidden" Name="ChartSection" HorizontalAlignment="Left">
+              Visibility="Hidden" Name="ChartSection" HorizontalAlignment="Center"
+              Margin="0,0,100,0">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="3*" />
@@ -156,27 +155,40 @@
         <!-- ========== TABLE + DATABASE SELECTION (Row 3) ========== -->
 
         <!-- A grid to hold the table background rectangle, DB selection, and the DataGrid -->
-        <Grid Grid.Row="3" Grid.Column="1" Grid.ColumnSpan="2" HorizontalAlignment="Left"
-              Visibility="Hidden" Margin="0,10" x:Name="TableSection">
+        <Grid Grid.Row="2" Grid.RowSpan="4" 
+              Grid.Column="1" Grid.ColumnSpan="2" 
+              HorizontalAlignment="Center"
+              Visibility="Hidden" 
+              Margin="0,10,100,0" 
+              x:Name="TableSection">
             <Grid.RowDefinitions>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="33"/>
+                <RowDefinition Height="25"/>
+                <RowDefinition Height="auto"/>
+                <RowDefinition Height="*"/>
             </Grid.RowDefinitions>
+
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="2*"/>
+            </Grid.ColumnDefinitions>
 
             <!-- Big rectangle behind the table area -->
             <Rectangle x:Name="TableRectangle"
                        Grid.RowSpan="3"
+                       Grid.Column="0"
+                       Grid.ColumnSpan="2"
                        Stroke="DarkGray"
                        RadiusX="20" RadiusY="20"
                        HorizontalAlignment="Stretch"
                        VerticalAlignment="Stretch"
-                       Height="210" Width="1100"
+                       Height="auto" Width="auto"
                        Panel.ZIndex="0"/>
 
             <!-- DB Label & ComboBox (Row 0) -->
             <TextBlock x:Name="DB"
                        Grid.Row="0"
+                       Grid.Column="1"
                        Text="DataBase"
                        FontSize="13"
                        FontWeight="Bold"
@@ -184,33 +196,47 @@
                        HorizontalAlignment="Center"/>
             <ComboBox x:Name="SelectDB"
                       Grid.Row="0"
+                      Grid.Column="1"
                       HorizontalAlignment="Center"
                       Margin="200,10,0,0"
                       Width="100"
-                      SelectedIndex="0">
+                      SelectedIndex="0"
+                      SelectionChanged="ChangeDB">
                 <ComboBoxItem Content="N/A"/>
-                <ComboBoxItem Content="C02"/>
-                <ComboBoxItem Content="Grava"/>
+                <ComboBoxItem Content="Ayesa"/>
+                <ComboBoxItem Content="Endesa"/>
             </ComboBox>
 
+            <Button Grid.Row="0"
+                    Grid.Column="0"
+                    Content="Show Graphs"
+                    FontSize="13"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Center"
+                    Click="ShowGraphs"
+                    x:Name="ToggleGraphs"/>
             <!-- Table Title (Row 1) -->
             <TextBlock x:Name="TitleTable"
                        Grid.Row="1"
+                       Grid.Column="0"
+                       Grid.ColumnSpan="12"
                        FontStyle="Italic"
                        FontWeight="ExtraBold"
                        FontSize="15"
                        Margin="20,5,0,0"
-                       HorizontalAlignment="Center"/>
+                       HorizontalAlignment="Left"/>
 
             <!-- The DataGrid (Row 2) -->
             <DataGrid x:Name="Tabla"
                       Grid.Row="2"
+                      Grid.Column="0"
+                      Grid.ColumnSpan="2"
                       AutoGenerateColumns="False"
                       CanUserAddRows="False"
                       CanUserDeleteRows="False"
                       IsReadOnly="True"
-                      Width="1015"
-                      Height="131"
+                      Width="auto"
+                      Height="auto"
                       Margin="20,5,20,10"
                       Visibility="Visible">
                 <DataGrid.Columns>
@@ -218,6 +244,8 @@
                     <DataGridTextColumn Header="Name" Binding="{Binding name}" Width="660"/>
                     <DataGridTextColumn Header="Date" Binding="{Binding fecha}" Width="80"/>
                     <DataGridTextColumn Header="Quantity" Binding="{Binding quantity}" Width="70"/>
+                    <DataGridTextColumn Header="Carbon" Binding="{Binding Carbono}" Width="100" Visibility="Hidden" x:Name="ColumnCarbono"/>
+                    <DataGridTextColumn Header="Agua" Binding="{Binding Agua}" Width="100" Visibility="Hidden" x:Name="ColumnAgua"/>
                     <DataGridTemplateColumn Header="Options" Width="80">
                         <DataGridTemplateColumn.CellTemplate>
                             <DataTemplate>
@@ -266,86 +294,88 @@
                     </Style>
                 </DataGrid.RowStyle>
             </DataGrid>
+
+
+            <!-- ========== PAGINATOR + BACK & SAVE BUTTONS (Row 4) ========== -->
+
+            <!-- A StackPanel for page controls and other buttons -->
+            <StackPanel x:Name="Paginator"
+            Grid.Row="3" Grid.ColumnSpan="2"
+            Orientation="Horizontal"
+            HorizontalAlignment="Center"
+            VerticalAlignment="Bottom"
+            Visibility="Hidden"
+            Margin="100,0,0,0"
+            Panel.ZIndex="1">
+                <!-- Previous Page -->
+                <Button x:Name="Previous"
+            Content="◀️"
+            Click="PreviousPage"
+            Background="Transparent"
+            BorderThickness="0"
+            Visibility="Hidden">
+                    <Button.Template>
+                        <ControlTemplate TargetType="Button">
+                            <Border Background="{TemplateBinding Background}"
+                        BorderBrush="{TemplateBinding BorderBrush}"
+                        BorderThickness="0">
+                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                        </ControlTemplate>
+                    </Button.Template>
+                </Button>
+
+                <!-- Page Number -->
+                <TextBlock x:Name="PageNumber"
+               VerticalAlignment="Center"
+               Margin="10"
+               Visibility="Hidden"/>
+
+                <!-- Next Page -->
+                <Button x:Name="Next"
+            Content="▶️"
+            Click="NextPage"
+            Background="Transparent"
+            BorderThickness="0"
+            Visibility="Hidden">
+                    <Button.Template>
+                        <ControlTemplate TargetType="Button">
+                            <Border Background="{TemplateBinding Background}"
+                        BorderBrush="{TemplateBinding BorderBrush}"
+                        BorderThickness="0">
+                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Border>
+                        </ControlTemplate>
+                    </Button.Template>
+                </Button>
+
+                <!-- Boton de Historial -->
+                <Button x:Name="BackButton"
+            Content="🔙"
+            Visibility="Hidden"
+            Click="BackButtonClick"
+            Background="Transparent"
+            FontSize="25"
+            BorderThickness="0"
+            Panel.ZIndex="1"
+            BorderBrush="Transparent"
+            Margin="20,0,0,0"/>
+
+                <!-- Boton Guardar -->
+                <Button x:Name="SaveButton"
+            Content="Descargar"
+            Visibility="Hidden"
+            Click="SaveButtonClick"
+            Background="Transparent"
+            FontSize="15"
+            BorderThickness="1"
+            Panel.ZIndex="1"
+            FontWeight="Bold"
+            Margin="20,0,0,0"
+            Height="25"/>
+            </StackPanel>
         </Grid>
 
-
-        <!-- ========== PAGINATOR + BACK & SAVE BUTTONS (Row 4) ========== -->
-
-        <!-- A StackPanel for page controls and other buttons -->
-        <StackPanel x:Name="Paginator"
-                    Grid.Row="4" Grid.ColumnSpan="3"
-                    Orientation="Horizontal"
-                    HorizontalAlignment="Center"
-                    VerticalAlignment="Bottom"
-                    Visibility="Hidden"
-                    Margin="0,0,0,20"
-                    Panel.ZIndex="1">
-            <!-- Previous Page -->
-            <Button x:Name="Previous"
-                    Content="◀️"
-                    Click="PreviousPage"
-                    Background="Transparent"
-                    BorderThickness="0"
-                    Visibility="Hidden">
-                <Button.Template>
-                    <ControlTemplate TargetType="Button">
-                        <Border Background="{TemplateBinding Background}"
-                                BorderBrush="{TemplateBinding BorderBrush}"
-                                BorderThickness="0">
-                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                        </Border>
-                    </ControlTemplate>
-                </Button.Template>
-            </Button>
-
-            <!-- Page Number -->
-            <TextBlock x:Name="PageNumber"
-                       VerticalAlignment="Center"
-                       Margin="10"
-                       Visibility="Hidden"/>
-
-            <!-- Next Page -->
-            <Button x:Name="Next"
-                    Content="▶️"
-                    Click="NextPage"
-                    Background="Transparent"
-                    BorderThickness="0"
-                    Visibility="Hidden">
-                <Button.Template>
-                    <ControlTemplate TargetType="Button">
-                        <Border Background="{TemplateBinding Background}"
-                                BorderBrush="{TemplateBinding BorderBrush}"
-                                BorderThickness="0">
-                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                        </Border>
-                    </ControlTemplate>
-                </Button.Template>
-            </Button>
-
-            <!-- Boton de Historial -->
-            <Button x:Name="BackButton"
-                    Content="🔙"
-                    Visibility="Hidden"
-                    Click="BackButtonClick"
-                    Background="Transparent"
-                    FontSize="25"
-                    BorderThickness="0"
-                    Panel.ZIndex="1"
-                    BorderBrush="Transparent"
-                    Margin="20,0,0,0"/>
-
-            <!-- Boton Guardar -->
-            <Button x:Name="SaveButton"
-                    Content="Descargar"
-                    Visibility="Hidden"
-                    Click="SaveButtonClick"
-                    Background="Transparent"
-                    FontSize="15"
-                    BorderThickness="1"
-                    Panel.ZIndex="1"
-                    FontWeight="Bold"
-                    Margin="20,0,0,0"/>
-        </StackPanel>
 
 
         <!-- ========== POPUP DESENSAMBLADO (Row 5, but it can float anywhere) ========== -->
@@ -365,7 +395,10 @@
                           CanUserDeleteRows="False"
                           CanUserSortColumns="False">
                     <DataGrid.Columns>
-                        <DataGridTextColumn Header="Id" Width="100" Binding="{Binding Id}"/>
+                        <DataGridComboBoxColumn Header="Category"
+                                SelectedItemBinding="{Binding Id}"
+                                Width="110"
+                                x:Name="IdField"/>
                         <DataGridTextColumn Header="Name" Width="100" Binding="{Binding name}"/>
                         <DataGridTextColumn Header="Quantity" Width="70" Binding="{Binding quantity}"/>
                     </DataGrid.Columns>
@@ -383,5 +416,33 @@
                         Click="MakeSplit"/>
             </Grid>
         </Popup>
+
+
+        <!-- ============ DOCUMENT TREE (Column 0 Row 2 - 4) ============ -->
+
+        <ScrollViewer VerticalScrollBarVisibility="Auto"
+                      HorizontalScrollBarVisibility="Auto"
+                      Grid.Column="0" 
+                      VerticalAlignment="Top" 
+                      Grid.Row="2" 
+                      Grid.RowSpan="4"
+                      HorizontalAlignment="Right"
+                      Margin="0,0,-10,0">
+            <TreeView Name="Tree" Height="500" Width="198"
+                      Background="Transparent"
+                      BorderThickness="0">
+                <TreeView.ItemTemplate>
+                    <HierarchicalDataTemplate ItemsSource="{Binding hijos}">
+                        <Button x:Name="TreeButton" 
+                            Content="{Binding Id}"
+                            Click="TreeClick"
+                            Visibility="Visible"
+                            BorderThickness="0"
+                            Background="Transparent"
+                            Foreground="#0000EE"/>
+                    </HierarchicalDataTemplate>
+                </TreeView.ItemTemplate>
+            </TreeView>
+        </ScrollViewer>
     </Grid>
 </UserControl>

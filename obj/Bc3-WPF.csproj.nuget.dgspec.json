@@ -57,6 +57,10 @@
             "MaterialDesignThemes": {
               "target": "Package",
               "version": "[5.2.1, )"
+            },
+            "Npgsql": {
+              "target": "Package",
+              "version": "[9.0.3, )"
             }
           },
           "imports": [

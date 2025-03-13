@@ -9,6 +9,10 @@ using LiveChartsCore.SkiaSharpView.Drawing.Geometries;
 using LiveChartsCore.SkiaSharpView.VisualElements;
 using LiveChartsCore.SkiaSharpView;
 using System.Collections.ObjectModel;
+using LiveChartsCore.Geo;
+using LiveChartsCore.Kernel.Sketches;
+using LiveChartsCore.SkiaSharpView.WPF;
+using System.Net.NetworkInformation;
 
 namespace Bc3_WPF.Screens.Charts;
 
@@ -21,14 +25,17 @@ public class Pie
     public LabelVisual TitleChart { get; set; }
 
     public LabelVisual TitlePie { get; set; }
+    public List<Axis> axes { get; set; }
 
     public Pie()
     {
+        axes = new();
+
         Series2 = new ObservableCollection<ISeries>
         {
-            new LineSeries<int>
+            new LineSeries<decimal>
             {
-                Values = new ObservableCollection<int> {}, // Ensure it's ObservableCollection<int>
+                Values = new ObservableCollection<decimal> {}, // Ensure it's ObservableCollection<int>
                 Fill = null,
                 GeometrySize = 20
             }
@@ -42,22 +49,22 @@ public class Pie
         TitleChart =
         new LabelVisual
         {
-            Text = "Número de hijos",
+            Text = "Carbono Total Por Base de datos",
             TextSize = 25,
             Padding = new LiveChartsCore.Drawing.Padding(15)
         };
 
         TitlePie = new LabelVisual
         {
-            Text = "Cantidad por hijos",
+            Text = "Carbono por concepto en Tabla",
             TextSize = 25,
             Padding = new LiveChartsCore.Drawing.Padding(15)
         };
     }
 
-    public static void setDoughtData(List<KeyValuePair<string, float?>> data, Pie pie)
+    public static void setDoughtData(List<KeyValuePair<string, decimal?>> data, Pie pie)
     {
-        List<float?> values = data.Select(e => e.Value).ToList();
+        List<decimal?> values = data.Select(e => e.Value).ToList();
         List<string> names = data.Select(e => e.Key).ToList();
         int _index = 0;
 
@@ -69,18 +76,64 @@ public class Pie
         });
     }
 
-    public static void updateLineChart(int data, Pie pie)
+    public static void updateLineChart(List<KeyValuePair<string, decimal?>> data, List<KeyValuePair<string, decimal?>> data2, Pie pie)
     {
-        if (pie.Series2[0] is LineSeries<int> lineSeries && lineSeries.Values is ObservableCollection<int> values)
-        {
-            values.Add(data);
+        List<int?> values = data.Select(e => (int?) e.Value).ToList();
+        List<string> labels = data.Select(e => "Change "+e.Key).ToList();
 
-            pie.Series2[0] = new LineSeries<int>
+        ObservableCollection<int> v = new ObservableCollection<int>();
+
+        foreach (int? val in values)
+        {
+            if (val.HasValue)  // Filter out null values
             {
-                Values = values, // Ensure it's ObservableCollection<int>
-                Fill = null,
-                GeometrySize = 20,
-            };
+                v.Add(val.Value);
+            }
         }
+
+        var lineSeries = new LineSeries<int>
+        {
+            Values = v,   // ObservableCollection of decimal values
+            Fill = null,  // No fill for the line
+            GeometrySize = 10,
+            Name = "Ayesa"// Optional: Adjust the size of data point markers
+        };
+
+        List<int?> values2 = data2.Select(e => (int?) e.Value).ToList();
+
+        ObservableCollection<int> v2 = new ObservableCollection<int>();
+
+        foreach (int? val in values2)
+        {
+            if (val.HasValue)  // Filter out null values
+            {
+                v2.Add(val.Value);
+            }
+        }
+
+        var lineSeries2 = new LineSeries<int>
+        {
+            Values = v2,   // ObservableCollection of decimal values
+            Fill = null,  // No fill for the line
+            GeometrySize = 10,
+            Name = "Endesa",
+            // Optional: Adjust the size of data point markers
+        };
+
+        var XAxes = new List<Axis>
+        {
+            new Axis
+            {
+                Labels = labels
+            }
+        };
+
+        // Clear previous series (optional depending on use case)
+        pie.Series2.Clear();
+
+        // Add the updated line series to the chart
+        pie.Series2.Add(lineSeries);
+        pie.Series2.Add(lineSeries2);
+        pie.axes = XAxes;
     }
 }

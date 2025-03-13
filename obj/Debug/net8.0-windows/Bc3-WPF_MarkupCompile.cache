@@ -1,7 +1,7 @@
 ﻿Bc3-WPF
 
 
-exe
+winexe
 C#
 .cs
 C:\Users\prodriguezsa\source\repos\Bc3-WPF\obj\Debug\net8.0-windows\
@@ -12,8 +12,8 @@ TRACE;DEBUG;NET;NET8_0;NETCOREAPP
 C:\Users\prodriguezsa\source\repos\Bc3-WPF\App.xaml
 41175525940
 
-141825822304
-220-109573869
+15-665682391
+223-2119131144
 Screens\Comparator.xaml;Screens\Home.xaml;Screens\TablaDePresupuestos.xaml;Window1.xaml;
 
 False

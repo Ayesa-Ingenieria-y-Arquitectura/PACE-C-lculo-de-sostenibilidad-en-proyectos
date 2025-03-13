@@ -103,3 +103,14 @@ C:\Users\prodriguezsa\source\repos\Bc3-WPF\testing\obj\Debug\net8.0-windows\refi
 C:\Users\prodriguezsa\source\repos\Bc3-WPF\testing\obj\Debug\net8.0-windows\testing.pdb
 C:\Users\prodriguezsa\source\repos\Bc3-WPF\testing\obj\Debug\net8.0-windows\testing.genruntimeconfig.cache
 C:\Users\prodriguezsa\source\repos\Bc3-WPF\testing\obj\Debug\net8.0-windows\ref\testing.dll
+C:\Users\prodriguezsa\source\repos\Bc3-WPF\testing\bin\Debug\net8.0-windows\LiveChartsCore.SkiaSharpView.WPF.dll
+C:\Users\prodriguezsa\source\repos\Bc3-WPF\testing\bin\Debug\net8.0-windows\LiveChartsCore.dll
+C:\Users\prodriguezsa\source\repos\Bc3-WPF\testing\bin\Debug\net8.0-windows\LiveChartsCore.SkiaSharpView.dll
+C:\Users\prodriguezsa\source\repos\Bc3-WPF\testing\bin\Debug\net8.0-windows\SkiaSharp.Views.WPF.dll
+C:\Users\prodriguezsa\source\repos\Bc3-WPF\testing\bin\Debug\net8.0-windows\SkiaSharp.Views.Desktop.Common.dll
+C:\Users\prodriguezsa\source\repos\Bc3-WPF\testing\bin\Debug\net8.0-windows\SkiaSharp.dll
+C:\Users\prodriguezsa\source\repos\Bc3-WPF\testing\bin\Debug\net8.0-windows\GLWpfControl.dll
+C:\Users\prodriguezsa\source\repos\Bc3-WPF\testing\bin\Debug\net8.0-windows\OpenTK.dll
+C:\Users\prodriguezsa\source\repos\Bc3-WPF\testing\bin\Debug\net8.0-windows\Npgsql.dll
+C:\Users\prodriguezsa\source\repos\Bc3-WPF\testing\bin\Debug\net8.0-windows\Microsoft.Extensions.Logging.Abstractions.dll
+C:\Users\prodriguezsa\source\repos\Bc3-WPF\testing\bin\Debug\net8.0-windows\Microsoft.Extensions.DependencyInjection.Abstractions.dll
