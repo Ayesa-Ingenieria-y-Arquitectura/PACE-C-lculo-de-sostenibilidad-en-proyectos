@@ -1,52 +1,58 @@
-﻿namespace Bc3_WPF.backend.Modelos
+﻿using System.Diagnostics.CodeAnalysis;
+
+namespace Bc3_WPF.backend.Modelos
 {
     public class Presupuesto
     {
         public required string Id { get; set; }
+        public string? InternalId { get; set; }
         public required string name { get; set; }
-        public DateOnly? fecha { get; set; }
+        public string? category { get; set; }
+        public List<string>? medidores { get; set; }
         public List<Presupuesto>? hijos { get; set; }
         public float? quantity { get; set; }
         public Boolean? outdated { get; set; }
-        public decimal? Agua { get; set; }
-        public decimal? Carbono { get; set; }
+        public List<double>? values { get; set; }
+        public double? display {  get; set; }
 
-        public void CalculateValues(Dictionary<string, KeyValuePair<decimal, decimal>> DBdata)
+        public void CalculateValues(string medidor)
         {
             if (hijos == null || !hijos.Any())
             {
-                SetAguaAndCarbono(DBdata[Id], quantity ?? 0);
+                SetValues(medidor);
                 return;
             }
 
-            decimal totalAgua = 0;
-            decimal totalCarbono = 0;
+            double acum = 0;
 
             foreach (var hijo in hijos)
             {
-                hijo.CalculateValues(DBdata);
-                totalAgua += hijo.Agua ?? 0;
-                totalCarbono += hijo.Carbono ?? 0;
+                hijo.CalculateValues(medidor);
+                acum += hijo.display ?? 0;
             }
 
-            SetAguaAndCarbono(new KeyValuePair<decimal, decimal>(totalAgua, totalCarbono), quantity ?? 0);
+            display = acum;
         }
 
-        private void SetAguaAndCarbono(KeyValuePair<decimal, decimal> values, float val)
+        private void SetValues(string medidor)
         {
-            var a = values.Key * (decimal)val;
-            var c = values.Value * (decimal)val;
-
-            Agua = Math.Round(a, 2);
-            Carbono = Math.Round(c, 2);
+            if (medidores != null && medidores.Contains(medidor))
+            {
+                int index = medidores.IndexOf(medidor);
+                float Quantity = quantity ?? 0;
+                display = values[index] * Quantity;
+            }
+            else
+            {
+                display = 0;
+            }
         }
 
         public void NullValues()
         {
             hijos?.ForEach(h => h.NullValues());
 
-            Agua = null;
-            Carbono = null;
+            display = 0;
         }
     }
 }

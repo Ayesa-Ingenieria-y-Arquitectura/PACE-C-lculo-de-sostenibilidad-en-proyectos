@@ -21,7 +21,9 @@ namespace Bc3_WPF.Screens
         private List<KeyValuePair<string, List<KeyValuePair<string, decimal>>>> changes = new();
         private List<string> dbs = ["Ayesa-Enviroment", "Endesa-Enviroment"];
         private ObservableCollection<Presupuesto> treeInfo = new();
-        private List<string> idArray = new();
+        private Dictionary<string, List<string>> idArray = new();
+        private List<string> medidores = new();
+        private string med = "";
         private int pageNumber = 1;
         private int rowsPerPage = 20;
         private decimal? pages;
@@ -44,13 +46,18 @@ namespace Bc3_WPF.Screens
             {
                 fileName = Path.GetFileNameWithoutExtension(ofd.SafeFileName);
                 string filePath = ofd.FileName;
-                presupuesto = filePath.EndsWith(".bc3") ? presupuestoService.loadFromBC3(filePath) : presupuestoService.loadFromJson(filePath);
-                idArray = presupuestoService.getConceptsSinHijos(filePath);
-                
+                var data = filePath.EndsWith(".bc3") ? presupuestoService.loadFromBC3(filePath) : presupuestoService.loadFromJson(filePath);
+
+                presupuesto = data.Item1;
+                medidores = data.Item2.ToList();
+                idArray = data.Item3;
+
+                medidores.Insert(0, "N/A")
+
                 currentData = presupuesto?.hijos ?? new();
                 chartData = new Pie();
 
-                DBSplitChanges("Initial");
+                
                 makePagination();
                 SetupUI();
                 updateDoughtChart();
@@ -71,6 +78,7 @@ namespace Bc3_WPF.Screens
             Paginator.Visibility = Visibility.Visible;
             FileButton.Visibility = Visibility.Hidden;
             Tabla.ItemsSource = showing;
+            SelectMedidor.ItemsSource = medidores;
             treeInfo.Add(presupuesto);
             Tree.ItemsSource = treeInfo;
         }
@@ -95,8 +103,8 @@ namespace Bc3_WPF.Screens
             {
                 if (item.hijos == null || item.hijos.Count == 0)
                 {
-                    IdField.ItemsSource = idArray;
-                    SplitTable.ItemsSource = new List<Presupuesto> { new() { Id = item.Id, name = item.name, quantity = item.quantity, fecha = item.fecha } };
+                    IdField.ItemsSource = idArray[item.category];
+                    SplitTable.ItemsSource = new List<Presupuesto> { new() { Id = item.Id, name = item.name, quantity = item.quantity} };
                     SplitPopUp.IsOpen = !SplitPopUp.IsOpen;
                 }
                 else
@@ -160,8 +168,8 @@ namespace Bc3_WPF.Screens
         {
             if (sender is System.Windows.Controls.Button button && button.DataContext is Presupuesto item)
             {
-                IdField.ItemsSource = idArray;
-                SplitTable.ItemsSource = new List<Presupuesto> { new() { Id = item.Id, name = item.name, quantity = item.quantity, fecha = item.fecha } };
+                IdField.ItemsSource = idArray[item.category];
+                SplitTable.ItemsSource = new List<Presupuesto> { new() { Id = item.Id, name = item.name, quantity = item.quantity } };
                 SplitPopUp.IsOpen = !SplitPopUp.IsOpen;
             }
         }
@@ -179,7 +187,7 @@ namespace Bc3_WPF.Screens
                 original.outdated = true;
 
                 splitData = FilterSplitData(splitData);
-                UpdateSplitDataDates(splitData);
+                UpdateSplitData(splitData);
 
                 if (IsValidSplitData(original, splitData))
                 {
@@ -189,6 +197,18 @@ namespace Bc3_WPF.Screens
                 {
                     HandleInvalidSplitData(splitData);
                 }
+            }
+        }
+
+        private void UpdateSplitData(List<Presupuesto> data)
+        {
+            foreach(Presupuesto p in data)
+            {
+                Presupuesto og = presupuestoService.FindPresupuestoById(presupuesto, p.Id);
+                p.InternalId = og.InternalId;
+                p.medidores = og.medidores;
+                p.values = og.values;
+                p.category = og.category;
             }
         }
 
@@ -202,11 +222,6 @@ namespace Bc3_WPF.Screens
             return data.Where(p => !string.IsNullOrEmpty(p.Id) && p.quantity.HasValue && p.quantity.Value != 0).ToList();
         }
 
-        private void UpdateSplitDataDates(List<Presupuesto> data)
-        {
-            data.ForEach(p => p.fecha = DateOnly.FromDateTime(DateTime.Now));
-        }
-
         private bool IsValidSplitData(Presupuesto original, List<Presupuesto> splitData)
         {
             return original.quantity == splitData.Sum(p => p.quantity);
@@ -217,9 +232,12 @@ namespace Bc3_WPF.Screens
             previous.Add(new(parentId, original));
             presupuesto = Romper.change(presupuesto, historial, splitData, original.Id, true);
             historial.Clear();
+            if(med != "")
+            {
+                presupuesto.CalculateValues(med);
+            }
             currentData = presupuesto?.hijos?.Concat(previous.Where(p => p.Key == presupuesto.Id).Select(p => p.Value)).OrderBy(p => p.Id).ToList() ?? new();
 
-            DBSplitChanges(original.Id);
             makePagination();
             updateDoughtChart();
             getMedidores();
@@ -264,7 +282,7 @@ namespace Bc3_WPF.Screens
         private void updateDoughtChart()
         {
             var validData = showing.Where(e => e.outdated != true).ToList();
-            var doughtData = validData.Select(e => new KeyValuePair<string, decimal?>(e.Id, e.Carbono)).ToList();
+            var doughtData = validData.Select(e => new KeyValuePair<string, float?>(e.Id, e.quantity)).ToList();
             var data = changes.Select(e => new KeyValuePair<string, decimal?> (e.Key, e.Value[0].Value)).ToList();
             var data2 = changes.Select(e => new KeyValuePair<string, decimal?>(e.Key, e.Value[1].Value)).ToList();
 
@@ -308,8 +326,8 @@ namespace Bc3_WPF.Screens
         private void getMedidores()
         {
             //var processedData = CalculateQuantityAndConcepts(presupuesto?.hijos, new HashSet<string> { presupuesto?.Id ?? string.Empty });
-            var Carbono = presupuesto.hijos.Sum(e => e.Carbono) ?? 0;
-            var Agua = presupuesto.hijos.Sum(e => e.Agua) ?? 0;
+            var Carbono = 0;
+            var Agua = 0;
 
             Quantity.Text = ((int)Carbono).ToString();
             Concepts.Text = ((int)Agua).ToString();
@@ -344,60 +362,26 @@ namespace Bc3_WPF.Screens
 
         #endregion
 
-        #region DataBase
-        private void ChangeDB(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
+        #region DROPDOWN
+
+        private void handleChangeMedidor(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
         {
-            /*
-            if (e.RemovedItems.Count == 0 || SelectDB?.SelectedItem is not ComboBoxItem selectedItem)
-                return;
 
-            string selectedContent = selectedItem.Content.ToString();
-            bool isNA = selectedContent == "N/A";
+            string selectedContent = SelectMedidor?.SelectedItem.ToString();
 
-            if (presupuesto != null)
+            if(presupuesto != null && selectedContent != null)
             {
-                if (isNA)
-                {
-                    presupuesto.NullValues();
-                }
-                else
-                {
-                    Dictionary<string, KeyValuePair<decimal, decimal>> db = DatabaseService.LoadData($"{selectedContent}-Enviroment");
-                    presupuesto.CalculateValues(db);
-                }
+                presupuesto.CalculateValues(selectedContent);
+
+                TablaMedidor.Header = selectedContent;
+                med = selectedContent;
+                currentData = presupuesto?.hijos?.Concat(previous.Where(p => p.Key == presupuesto.Id).Select(p => p.Value)).OrderBy(p => p.Id).ToList() ?? new();
+                makePagination();
+                historial.Clear();
+                Tabla.ItemsSource = showing;
+                TablaMedidor.Visibility = Visibility.Visible;
             }
-
-            getMedidores();
-            UpdateDBUI(isNA);*/
         }
-
-        private void UpdateDBUI(bool isNA)
-        {
-            /*currentData = currentData = presupuesto?.hijos?.Concat(previous.Where(p => p.Key == presupuesto.Id).Select(p => p.Value)).OrderBy(p => p.Id).ToList() ?? new();
-            makePagination();
-            Tabla.ItemsSource = showing;
-            updateDoughtChart();
-
-            Visibility columnVisibility = isNA ? Visibility.Hidden : Visibility.Visible;
-            ColumnAgua.Visibility = columnVisibility;
-            ColumnCarbono.Visibility = columnVisibility;*/
-        }
-
-        private void DBSplitChanges(string parentId)
-        {
-            /*List<KeyValuePair<string, decimal>> dbData = new();
-            foreach (string db in dbs)
-            {
-                Dictionary<string, KeyValuePair<decimal, decimal>> data = DatabaseService.LoadData(db);
-                presupuesto.CalculateValues(data);
-                KeyValuePair<string, decimal> k = new KeyValuePair<string, decimal>(db, (decimal)presupuesto.hijos.Sum(p => p.Carbono));
-                dbData.Add(k);
-            }
-
-            changes.Add(new KeyValuePair<string, List<KeyValuePair<string, decimal>>>(parentId, dbData));
-            presupuesto.NullValues();*/
-        }
-
         #endregion
     }
 }

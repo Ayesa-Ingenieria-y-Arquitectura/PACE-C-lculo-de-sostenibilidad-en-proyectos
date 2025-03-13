@@ -4,34 +4,48 @@ using System.IO;
 using System.Text.Json;
 using System.Diagnostics;
 using System.Xml;
+using Bc3_WPF.Backend.Modelos;
+using Bc3_WPF.Backend.Services;
+using System.Security.AccessControl;
+using System.Collections.Generic;
 
 namespace Bc3_WPF.backend.Services
 {
 
     public class presupuestoService
     {
-        public static Presupuesto loadFromBC3(string filename)
+        public static (Presupuesto, HashSet<string>, Dictionary<string, List<string>>) loadFromBC3(string filename)
         {
+            List<SustainabilityRecord> data = SustainabilityService.getFromDatabase();
+
             List<Concepto> lectura = Parse.BC3ToList(filename);
             Presupuesto presupuesto = presupuestoFromConcept(lectura);
+            presupuesto = fillPresupuesto(presupuesto, data);
 
-            return presupuesto;
+            HashSet<string> list = SustainabilityService.medidores(data);
+            Dictionary<string, List<string>> dict = SustainabilityService.getFromCategories(data);
+
+            return (presupuesto, list, dict);
         }
 
-        public static Presupuesto loadFromJson(string filename)
+        public static (Presupuesto, HashSet<string>, Dictionary<string, List<string>>) loadFromJson(string filename)
         {
-                string json = File.ReadAllText(filename, System.Text.Encoding.GetEncoding("iso-8859-1"));
-                Presupuesto obj = JsonSerializer.Deserialize<Presupuesto>(json);
-                return obj;
+            List<SustainabilityRecord> data = SustainabilityService.getFromDatabase();
+
+            string json = File.ReadAllText(filename, System.Text.Encoding.GetEncoding("iso-8859-1"));
+            Presupuesto obj = JsonSerializer.Deserialize<Presupuesto>(json);
+            obj = fillPresupuesto(obj, data);
+
+            HashSet<string> list = SustainabilityService.medidores(data);
+            Dictionary<string, List<string>> dict = SustainabilityService.getFromCategories(data);
+
+            return (obj, list, dict);
         }
 
         private static Presupuesto presupuestoFromConcept(List<Concepto> conceptos)
         {
             Concepto principal = searchPrincipal(conceptos);
-            Presupuesto res = new Presupuesto { Id = principal.Id, name = principal.name};
-
-            if (principal.fecha != null)
-                res.fecha = (DateOnly)principal.fecha;
+            Presupuesto res = new Presupuesto { Id = principal.Id, name = principal.name };
 
             if (principal.descomposicion != null)
             {
@@ -55,9 +69,6 @@ namespace Bc3_WPF.backend.Services
                     name = principal.name,
                     quantity = h.Value
                 };
-
-                if (principal.fecha != null)
-                    hijo.fecha = (DateOnly)principal.fecha;
 
                 if (principal.descomposicion != null)
                 {
@@ -106,6 +117,68 @@ namespace Bc3_WPF.backend.Services
 
             return res;
         }
+
+        public static Presupuesto fillPresupuesto(Presupuesto presupuesto, List<SustainabilityRecord> data)
+        {
+            List<Presupuesto> prs = new();
+
+            foreach (Presupuesto hijo in presupuesto.hijos)
+            {
+                Presupuesto p = hijo;
+
+                if (hijo.hijos != null)
+                {
+                    p = fillPresupuesto(hijo, data);
+                }
+                else
+                {
+                    List<SustainabilityRecord> sr = data.Where(r => r.ExternalId == hijo.Id).ToList();
+                    p.values = new();
+                    p.medidores = new();
+                    foreach (SustainabilityRecord s in sr)
+                    {
+                        p.InternalId = s.InternalId;
+                        p.category = s.Category;
+                        p.medidores.Add(s.Indicator);
+                        p.values.Add(s.Value);
+                    }
+                }
+
+                prs.Add(p);
+            }
+
+            presupuesto.hijos = prs;
+            return presupuesto;
+        }
+
+        public static Presupuesto FindPresupuestoById(Presupuesto presupuesto, string id)
+        {
+            // Base case: if the current Presupuesto's Id matches the search Id
+            if (presupuesto.Id == id)
+            {
+                return presupuesto;
+            }
+
+            // Recursively search through the hijos (children)
+            if(presupuesto.hijos != null)
+            {
+                foreach (var hijo in presupuesto.hijos)
+                {
+                    var result = FindPresupuestoById(hijo, id);
+                    if (result != null)
+                    {
+                        return result;
+                    }
+                }
+            }else
+            {
+                return null;
+            }
+
+
+            return null;
+        }
     }
+
 
 }

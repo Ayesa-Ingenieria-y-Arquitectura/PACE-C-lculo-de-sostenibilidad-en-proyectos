@@ -62,9 +62,9 @@ public class Pie
         };
     }
 
-    public static void setDoughtData(List<KeyValuePair<string, decimal?>> data, Pie pie)
+    public static void setDoughtData(List<KeyValuePair<string, float?>> data, Pie pie)
     {
-        List<decimal?> values = data.Select(e => e.Value).ToList();
+        List<float?> values = data.Select(e => e.Value).ToList();
         List<string> names = data.Select(e => e.Key).ToList();
         int _index = 0;
 
