@@ -23,6 +23,7 @@ namespace Bc3_WPF.Screens
         private ObservableCollection<Presupuesto> treeInfo = new();
         private Dictionary<string, List<string>> idArray = new();
         private List<string> medidores = new();
+        private List<KeyValuePair<string, Dictionary<string, double?>>> chartNumber = new();
         private string med = "";
         private int pageNumber = 1;
         private int rowsPerPage = 20;
@@ -52,7 +53,7 @@ namespace Bc3_WPF.Screens
                 medidores = data.Item2.ToList();
                 idArray = data.Item3;
 
-                medidores.Insert(0, "N/A")
+                medidores.Insert(0, "N/A");
 
                 currentData = presupuesto?.hijos ?? new();
                 chartData = new Pie();
@@ -62,6 +63,15 @@ namespace Bc3_WPF.Screens
                 SetupUI();
                 updateDoughtChart();
                 getMedidores();
+
+                Dictionary<string, double?> dict = new();
+                foreach (string s in medidores)
+                {
+                    presupuesto.CalculateValues(s);
+                    dict[s] = presupuesto.hijos.Select(e => e.display).Sum();
+                }
+                KeyValuePair<string, Dictionary<string, double?>> k = new KeyValuePair<string, Dictionary<string, double?>>("Initial", dict);
+                chartNumber.Add(k);
             }
         }
 
@@ -71,7 +81,7 @@ namespace Bc3_WPF.Screens
             TitleTable.Text = presupuesto?.name;
             Chart.Title = chartData?.TitleChart;
             PieChart.Title = chartData?.TitlePie;
-            
+
             RectangleInfo.Visibility = Visibility.Visible;
             //ChartSection.Visibility = Visibility.Visible;
             TableSection.Visibility = Visibility.Visible;
@@ -232,7 +242,18 @@ namespace Bc3_WPF.Screens
             previous.Add(new(parentId, original));
             presupuesto = Romper.change(presupuesto, historial, splitData, original.Id, true);
             historial.Clear();
-            if(med != "")
+
+
+            Dictionary<string, double?> dict = new();
+            foreach (string s in medidores)
+            {
+                presupuesto.CalculateValues(s);
+                dict[s] = presupuesto.display;
+            }
+            KeyValuePair<string, Dictionary<string, double?>> k = new KeyValuePair<string, Dictionary<string, double?>>("change " + original.Id, dict);
+            chartNumber.Add(k);
+
+            if(med != "" && med != "N/A")
             {
                 presupuesto.CalculateValues(med);
             }
@@ -281,13 +302,11 @@ namespace Bc3_WPF.Screens
         #region CHARTING
         private void updateDoughtChart()
         {
-            var validData = showing.Where(e => e.outdated != true).ToList();
-            var doughtData = validData.Select(e => new KeyValuePair<string, float?>(e.Id, e.quantity)).ToList();
-            var data = changes.Select(e => new KeyValuePair<string, decimal?> (e.Key, e.Value[0].Value)).ToList();
-            var data2 = changes.Select(e => new KeyValuePair<string, decimal?>(e.Key, e.Value[1].Value)).ToList();
+            //var validData = showing.GroupBy(e => e.category).ToDictionary(e => e.Key, e => e.Select(e => e.display?? 0).Sum());
+            var data2 = chartNumber.Select(e => new KeyValuePair<string, double?>(e.Key, e.Value[med])).ToList();
 
-            Pie.setDoughtData(doughtData, chartData);
-            Pie.updateLineChart(data, data2, chartData);
+            //Pie.setDoughtData(validData, chartData);
+            Pie.updateLineChart(data2, chartData);
             PieChart.Series = chartData.Series;
             Chart.Series = chartData.Series2;
             Chart.XAxes = chartData.axes;
@@ -369,7 +388,7 @@ namespace Bc3_WPF.Screens
 
             string selectedContent = SelectMedidor?.SelectedItem.ToString();
 
-            if(presupuesto != null && selectedContent != null)
+            if(presupuesto != null && selectedContent != null && selectedContent != "N/A")
             {
                 presupuesto.CalculateValues(selectedContent);
 
@@ -380,6 +399,14 @@ namespace Bc3_WPF.Screens
                 historial.Clear();
                 Tabla.ItemsSource = showing;
                 TablaMedidor.Visibility = Visibility.Visible;
+            } else {
+                presupuesto.NullValues();
+                med = selectedContent;
+                currentData = presupuesto?.hijos?.Concat(previous.Where(p => p.Key == presupuesto.Id).Select(p => p.Value)).OrderBy(p => p.Id).ToList() ?? new();
+                makePagination();
+                historial.Clear();
+                Tabla.ItemsSource = showing;
+                TablaMedidor.Visibility = Visibility.Hidden;
             }
         }
         #endregion

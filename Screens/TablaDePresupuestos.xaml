@@ -185,7 +185,7 @@
                        Height="auto" Width="auto"
                        Panel.ZIndex="0"/>
 
-            <!-- DB Label & ComboBox (Row 0) -->
+            <!-- Medidores Label & ComboBox (Row 0) -->
             <TextBlock Grid.Row="0"
                        Grid.Column="1"
                        Text="Medidor"
@@ -199,7 +199,8 @@
                       HorizontalAlignment="Center"
                       Margin="200,10,0,0"
                       Width="100"
-                      SelectionChanged="handleChangeMedidor">
+                      SelectionChanged="handleChangeMedidor"
+                      SelectedIndex="0">
             </ComboBox>
 
             <Button Grid.Row="0"
