@@ -101,12 +101,10 @@ namespace Bc3_WPF.Screens
         {
             Presupuesto res = null;
             if (path.EndsWith(".json"))
-            {
-               res = presupuestoService.loadFromJson(path); 
+            {  
             }
             else if (path.EndsWith(".bc3"))
             {
-                res = presupuestoService.loadFromBC3(path);
             }
             else
             {

@@ -62,9 +62,9 @@ public class Pie
         };
     }
 
-    public static void setDoughtData(List<KeyValuePair<string, decimal?>> data, Pie pie)
+    public static void setDoughtData(Dictionary<string, double> data, Pie pie)
     {
-        List<decimal?> values = data.Select(e => e.Value).ToList();
+        List<double> values = data.Select(e => e.Value).ToList();
         List<string> names = data.Select(e => e.Key).ToList();
         int _index = 0;
 
@@ -76,7 +76,7 @@ public class Pie
         });
     }
 
-    public static void updateLineChart(List<KeyValuePair<string, decimal?>> data, List<KeyValuePair<string, decimal?>> data2, Pie pie)
+    public static void updateLineChart(List<KeyValuePair<string, double?>> data, Pie pie)
     {
         List<int?> values = data.Select(e => (int?) e.Value).ToList();
         List<string> labels = data.Select(e => "Change "+e.Key).ToList();
@@ -99,27 +99,6 @@ public class Pie
             Name = "Ayesa"// Optional: Adjust the size of data point markers
         };
 
-        List<int?> values2 = data2.Select(e => (int?) e.Value).ToList();
-
-        ObservableCollection<int> v2 = new ObservableCollection<int>();
-
-        foreach (int? val in values2)
-        {
-            if (val.HasValue)  // Filter out null values
-            {
-                v2.Add(val.Value);
-            }
-        }
-
-        var lineSeries2 = new LineSeries<int>
-        {
-            Values = v2,   // ObservableCollection of decimal values
-            Fill = null,  // No fill for the line
-            GeometrySize = 10,
-            Name = "Endesa",
-            // Optional: Adjust the size of data point markers
-        };
-
         var XAxes = new List<Axis>
         {
             new Axis
@@ -133,7 +112,6 @@ public class Pie
 
         // Add the updated line series to the chart
         pie.Series2.Add(lineSeries);
-        pie.Series2.Add(lineSeries2);
         pie.axes = XAxes;
     }
 }

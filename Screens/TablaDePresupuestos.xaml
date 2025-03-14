@@ -185,26 +185,22 @@
                        Height="auto" Width="auto"
                        Panel.ZIndex="0"/>
 
-            <!-- DB Label & ComboBox (Row 0) -->
-            <TextBlock x:Name="DB"
-                       Grid.Row="0"
+            <!-- Medidores Label & ComboBox (Row 0) -->
+            <TextBlock Grid.Row="0"
                        Grid.Column="1"
-                       Text="DataBase"
+                       Text="Medidor"
                        FontSize="13"
                        FontWeight="Bold"
                        Margin="20,10,0,0"
                        HorizontalAlignment="Center"/>
-            <ComboBox x:Name="SelectDB"
+            <ComboBox x:Name="SelectMedidor"
                       Grid.Row="0"
                       Grid.Column="1"
                       HorizontalAlignment="Center"
                       Margin="200,10,0,0"
                       Width="100"
-                      SelectedIndex="0"
-                      SelectionChanged="ChangeDB">
-                <ComboBoxItem Content="N/A"/>
-                <ComboBoxItem Content="Ayesa"/>
-                <ComboBoxItem Content="Endesa"/>
+                      SelectionChanged="handleChangeMedidor"
+                      SelectedIndex="0">
             </ComboBox>
 
             <Button Grid.Row="0"
@@ -240,13 +236,13 @@
                       Margin="20,5,20,10"
                       Visibility="Visible">
                 <DataGrid.Columns>
-                    <DataGridTextColumn Header="Id" Binding="{Binding Id}" Width="100"/>
-                    <DataGridTextColumn Header="Name" Binding="{Binding name}" Width="660"/>
-                    <DataGridTextColumn Header="Date" Binding="{Binding fecha}" Width="80"/>
-                    <DataGridTextColumn Header="Quantity" Binding="{Binding quantity}" Width="70"/>
-                    <DataGridTextColumn Header="Carbon" Binding="{Binding Carbono}" Width="100" Visibility="Hidden" x:Name="ColumnCarbono"/>
-                    <DataGridTextColumn Header="Agua" Binding="{Binding Agua}" Width="100" Visibility="Hidden" x:Name="ColumnAgua"/>
-                    <DataGridTemplateColumn Header="Options" Width="80">
+                    <DataGridTextColumn Header="Id" Binding="{Binding Id}" Width="auto"/>
+                    <DataGridTextColumn Header="Internal Id" Binding="{Binding InternalId}" Width="auto" />
+                    <DataGridTextColumn Header="Description" Binding="{Binding name}" Width="auto"/>
+                    <DataGridTextColumn Header="Category" Binding="{Binding category}" Width="auto" />
+                    <DataGridTextColumn Header="" x:Name="TablaMedidor" Binding="{Binding display}" Width="auto" Visibility="Hidden"/>
+                    <DataGridTextColumn Header="Quantity" Binding="{Binding quantity}" Width="auto"/>
+                    <DataGridTemplateColumn Header="Options" Width="auto">
                         <DataGridTemplateColumn.CellTemplate>
                             <DataTemplate>
                                 <Grid>
@@ -386,7 +382,8 @@
                IsEnabled="True">
             <Grid>
                 <DataGrid x:Name="SplitTable"
-                          Height="145" Width="307"
+                          Height="auto" Width="auto"
+                          MinHeight="200"
                           HorizontalAlignment="Stretch"
                           Margin="0,0,0,0"
                           VerticalAlignment="Top"
@@ -397,10 +394,10 @@
                     <DataGrid.Columns>
                         <DataGridComboBoxColumn Header="Category"
                                 SelectedItemBinding="{Binding Id}"
-                                Width="110"
+                                Width="auto"
                                 x:Name="IdField"/>
-                        <DataGridTextColumn Header="Name" Width="100" Binding="{Binding name}"/>
-                        <DataGridTextColumn Header="Quantity" Width="70" Binding="{Binding quantity}"/>
+                        <DataGridTextColumn Header="Description" Width="auto" Binding="{Binding name}"/>
+                        <DataGridTextColumn Header="Quantity" Width="auto" Binding="{Binding quantity}"/>
                     </DataGrid.Columns>
                 </DataGrid>
 
