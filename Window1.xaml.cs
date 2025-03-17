@@ -24,12 +24,17 @@ namespace Bc3_WPF
         {
             InitializeComponent();
             MainContent.Content = new Home();
-
         }
 
         #region MENU
         private void DisplayMenu(object sender, RoutedEventArgs e)
         {
+            // En el nuevo diseño, el menú es siempre visible, pero podríamos
+            // implementar un comportamiento de expansión si es necesario
+            // (por ejemplo, mostrar texto junto a los iconos)
+
+            // Si se quiere mantener el comportamiento original, se puede adaptar así:
+            /*
             if (Menu.Visibility == Visibility.Visible)
             {
                 Menu.Visibility = Visibility.Hidden;
@@ -40,6 +45,7 @@ namespace Bc3_WPF
                 Menu.Visibility = Visibility.Visible;
                 MenuButton.Visibility = Visibility.Hidden;
             }
+            */
         }
 
         private void newFile(object sender, RoutedEventArgs e)
