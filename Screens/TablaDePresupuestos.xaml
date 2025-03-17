@@ -291,19 +291,7 @@
                                VerticalAlignment="Center"
                                Margin="12,0,0,0"/>
                 </StackPanel>
-                <!-- File Button (shown when no file is loaded) -->
-                <Button Name="FileButton"
-                        Grid.Column="1"
-                        Content="Select BC3 File"
-                        Style="{StaticResource ModernButton}"
-                        FontSize="16"
-                        Margin="0,0,0,0"
-                        HorizontalAlignment="Center"
-                        VerticalAlignment="Center"
-                        Width="200"
-                        Height="45"
-                        Click="LoadBC3"/>
-                
+
                 <!-- Action buttons container (right side) -->
                 <StackPanel Grid.Column="2" 
                             Orientation="Horizontal" 
@@ -560,45 +548,72 @@
                 
                 <!-- Header with Selector -->
                 <Grid Grid.Row="0" Margin="20,15,20,5">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <!-- Para el título y el botón Back -->
+                        <RowDefinition Height="Auto"/>
+                        <!-- Para los selectores -->
+                    </Grid.RowDefinitions>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto"/>
                         <ColumnDefinition Width="*"/>
                         <ColumnDefinition Width="Auto"/>
                     </Grid.ColumnDefinitions>
-                    
+
                     <!-- Back Button -->
                     <Button x:Name="BackButton"
-                            Grid.Column="0"
-                            Content="← Back"
-                            Style="{StaticResource ModernButton}"
-                            Background="#95A5A6"
-                            Padding="12,6"
-                            Visibility="Hidden"
-                            Click="BackButtonClick"/>
-                    
+            Grid.Row="0"
+            Grid.Column="0"
+            Content="← Back"
+            Style="{StaticResource ModernButton}"
+            Background="#95A5A6"
+            Padding="12,6"
+            Visibility="Hidden"
+            Click="BackButtonClick"/>
+
                     <!-- Table Title -->
                     <TextBlock x:Name="TitleTable"
-                               Grid.Column="1"
-                               FontWeight="SemiBold"
-                               FontSize="16"
-                               Foreground="{StaticResource DarkTextColor}"
-                               VerticalAlignment="Center"
-                               Margin="15,0,0,0"/>
-                    
-                    <!-- Medidor Selector -->
-                    <StackPanel Grid.Column="2" Orientation="Horizontal">
+               Grid.Row="0"
+               Grid.Column="1"
+               FontWeight="SemiBold"
+               FontSize="18"
+               Foreground="{StaticResource DarkTextColor}"
+               VerticalAlignment="Center"
+               HorizontalAlignment="Center"
+               Margin="0,0,0,10"/>
+
+                    <!-- Selectores en la fila inferior, centrados -->
+                    <StackPanel Grid.Row="1" 
+                Grid.Column="0"
+                Grid.ColumnSpan="3"
+                Orientation="Horizontal"
+                HorizontalAlignment="Center"
+                Margin="0,5,0,10">
+                        <!-- Selector de Base de Datos -->
+                        <TextBlock Text="Base de Datos:"
+                   VerticalAlignment="Center"
+                   FontWeight="Medium"
+                   Margin="0,0,10,0"/>
+                        <ComboBox x:Name="SelectBaseDatos"
+                  Width="150"
+                  Padding="8,5"
+                  SelectionChanged="handleChangeBaseDatos"
+                  SelectedIndex="0"
+                  Margin="0,0,20,0"/>
+
+                        <!-- Selector de Medidor -->
                         <TextBlock Text="Medidor:"
-                                   VerticalAlignment="Center"
-                                   FontWeight="Medium"
-                                   Margin="0,0,10,0"/>
+                   VerticalAlignment="Center"
+                   FontWeight="Medium"
+                   Margin="0,0,10,0"/>
                         <ComboBox x:Name="SelectMedidor"
-                                  Width="120"
-                                  Padding="8,5"
-                                  SelectionChanged="handleChangeMedidor"
-                                  SelectedIndex="0"/>
+                  Width="150"
+                  Padding="8,5"
+                  SelectionChanged="handleChangeMedidor"
+                  SelectedIndex="0"/>
                     </StackPanel>
                 </Grid>
-                
+
                 <!-- The DataGrid -->
                 <DataGrid x:Name="Tabla"
                           Grid.Row="2"
@@ -615,6 +630,7 @@
                         <DataGridTextColumn Header="Category" Binding="{Binding category}" Width="Auto"/>
                         <DataGridTextColumn Header="" x:Name="TablaMedidor" Binding="{Binding display}" Width="Auto" Visibility="Hidden"/>
                         <DataGridTextColumn Header="Quantity" Binding="{Binding quantity}" Width="Auto"/>
+                        <DataGridTextColumn Header="Database" x:Name="TablaBaseDatos" Binding="{Binding database}" Width="Auto" Visibility="Hidden"/>
                         <DataGridTemplateColumn Header="Options" Width="Auto">
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>

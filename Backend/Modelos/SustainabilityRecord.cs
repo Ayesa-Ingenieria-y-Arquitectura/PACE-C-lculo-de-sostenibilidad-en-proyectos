@@ -10,8 +10,9 @@ namespace Bc3_WPF.Backend.Modelos
     {
         public required string ExternalId { get; set; }
         public required string InternalId { get; set; }
-        public required string Category {  get; set; }
+        public required string Category { get; set; }
         public required string Indicator { get; set; }
         public required double Value { get; set; }
+        public required string Database { get; set; } // Añadido el campo Database
     }
 }
