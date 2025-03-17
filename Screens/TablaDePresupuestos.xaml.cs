@@ -9,6 +9,7 @@ using System.Windows.Forms; // Para FolderBrowserDialog
 using Bc3_WPF.backend.Modelos;
 using Bc3_WPF.backend.Services;
 using Bc3_WPF.Backend.Auxiliar;
+using Bc3_WPF.Backend.Modelos;
 using Bc3_WPF.Backend.Services;
 using Bc3_WPF.Screens.Charts;
 using LiveChartsCore.SkiaSharpView.WPF;
@@ -24,7 +25,7 @@ namespace Bc3_WPF.Screens
         private List<Presupuesto> showing = new();
         private List<KeyValuePair<string, Presupuesto>> previous = new();
         private List<KeyValuePair<string, List<KeyValuePair<string, decimal>>>> changes = new();
-        private List<string> dbs = ["Ayesa-Enviroment", "Endesa-Enviroment"];
+        private List<string> dbs = new();
         private ObservableCollection<Presupuesto> treeInfo = new();
         private Dictionary<string, List<string>> idArray = new();
         private List<string> medidores = new();
@@ -35,6 +36,7 @@ namespace Bc3_WPF.Screens
         private decimal? pages;
         private string? fileName;
         private Pie? chartData;
+        private string dbSelected = "";
         #endregion
 
         public TablaDePresupuestos()
@@ -111,10 +113,16 @@ namespace Bc3_WPF.Screens
             Paginator.Visibility = Visibility.Visible;
 
             // Hide initial components
-            FileButton.Visibility = Visibility.Hidden;
             InitialOverlay.Visibility = Visibility.Collapsed;
 
             // Set data sources
+            Tabla.ItemsSource = showing;
+            SelectMedidor.ItemsSource = medidores;
+
+            LoadDatabases();
+
+            // Set data sources
+            SelectBaseDatos.ItemsSource = dbs;
             Tabla.ItemsSource = showing;
             SelectMedidor.ItemsSource = medidores;
 
@@ -131,6 +139,19 @@ namespace Bc3_WPF.Screens
             Grid.SetRow(TableSection, 2);
             Grid.SetRowSpan(TableSection, 2);
             ToggleGraphs.Content = "Show Graphs";
+        }
+
+        /// <summary>
+        /// Carga las bases de datos disponibles desde SustainabilityService
+        /// </summary>
+        private void LoadDatabases()
+        {
+            // Obtener las bases de datos desde SustainabilityService
+            var sustainabilityRecords = SustainabilityService.getFromDatabase();
+            dbs = SustainabilityService.getDatabases(sustainabilityRecords).ToList();
+
+            // Añadir opción "N/A" al inicio
+            dbs.Insert(0, "N/A");
         }
 
         #endregion
@@ -553,10 +574,53 @@ namespace Bc3_WPF.Screens
 
         #endregion
 
-        #region Medidor Selection
+        #region Medidor and BaseDatos Selection
 
         /// <summary>
-        /// Handles change in medidor selection
+        /// Handles change in base de datos selection
+        /// </summary>
+        private void handleChangeBaseDatos(object sender, SelectionChangedEventArgs e)
+        {
+            if (SelectBaseDatos?.SelectedItem == null || presupuesto == null)
+                return;
+
+            string selectedContent = SelectBaseDatos.SelectedItem.ToString();
+
+            if (selectedContent != null && selectedContent != "N/A")
+            {
+                // Guardar la base de datos seleccionada
+                dbSelected = selectedContent;
+
+                // Mostrar la columna de base de datos
+                TablaBaseDatos.Header = selectedContent;
+                TablaBaseDatos.Visibility = Visibility.Visible;
+
+                // Actualizar los valores si ya hay un medidor seleccionado
+                if (med != "" && med != "N/A")
+                {
+                    UpdateValuesWithDatabaseAndMedidor();
+                }
+            }
+            else
+            {
+                // Reset valores de base de datos
+                dbSelected = "";
+                TablaBaseDatos.Visibility = Visibility.Hidden;
+
+                // Si hay un medidor seleccionado, usar el método original
+                if (med != "" && med != "N/A")
+                {
+                    presupuesto.NullValues();
+                    presupuesto.CalculateValues(med);
+                }
+            }
+
+            // Actualizar datos y UI
+            RefreshDataAndUI();
+        }
+
+        /// <summary>
+        /// Maneja el cambio de selección de medidor
         /// </summary>
         private void handleChangeMedidor(object sender, SelectionChangedEventArgs e)
         {
@@ -567,23 +631,130 @@ namespace Bc3_WPF.Screens
 
             if (selectedContent != null && selectedContent != "N/A")
             {
-                // Calculate values for selected medidor
-                presupuesto.CalculateValues(selectedContent);
-
-                // Update UI
-                TablaMedidor.Header = selectedContent;
+                // Guardar el medidor seleccionado
                 med = selectedContent;
+
+                // Mostrar la columna de medidor
+                TablaMedidor.Header = selectedContent;
                 TablaMedidor.Visibility = Visibility.Visible;
+
+                // Actualizar valores según si hay base de datos seleccionada
+                if (dbSelected != "" && dbSelected != "N/A")
+                {
+                    UpdateValuesWithDatabaseAndMedidor();
+                }
+                else
+                {
+                    // Usar el método CalculateValues original si no hay base de datos seleccionada
+                    presupuesto.NullValues();
+                    presupuesto.CalculateValues(selectedContent);
+                }
             }
             else
             {
-                // Reset values
+                // Reset valores
                 presupuesto.NullValues();
-                med = selectedContent ?? "";
+                med = "";
                 TablaMedidor.Visibility = Visibility.Hidden;
             }
 
-            // Update current data and UI
+            // Actualizar datos y UI
+            RefreshDataAndUI();
+        }
+
+        /// <summary>
+        /// Actualiza los valores usando tanto la base de datos como el medidor seleccionados
+        /// </summary>
+        private void UpdateValuesWithDatabaseAndMedidor()
+        {
+            // Primero reiniciar valores
+            presupuesto.NullValues();
+
+            // Obtener registros de SustainabilityService
+            var sustainabilityRecords = SustainabilityService.getFromDatabase();
+
+            // Filtrar los registros por la base de datos y el medidor seleccionados
+            var filteredRecords = sustainabilityRecords
+                .Where(sr => sr.Database == dbSelected && sr.Indicator == med)
+                .ToList();
+
+            // Obtener las relaciones de código
+            var codeRelations = SustainabilityService.getCodeRelation(sustainabilityRecords);
+
+            // Actualizar los valores en los nodos hoja primero
+            UpdateLeafNodeValues(presupuesto, filteredRecords, codeRelations);
+
+            // Ahora propagar los valores hacia arriba para asegurar que las sumas sean correctas
+            PropagateValuesUpward(presupuesto);
+        }
+
+        /// <summary>
+        /// Actualiza los valores de los nodos hoja (sin hijos) según los registros de sostenibilidad
+        /// </summary>
+        private void UpdateLeafNodeValues(Presupuesto node, List<SustainabilityRecord> records, List<KeyValuePair<string, string>> codeRelations)
+        {
+            // Si es un nodo hoja (sin hijos)
+            if (node.hijos == null || !node.hijos.Any())
+            {
+                // Buscar el código interno correspondiente al código externo
+                var relation = codeRelations.FirstOrDefault(cr => cr.Key == node.Id);
+
+                if (!string.IsNullOrEmpty(relation.Value))
+                {
+                    // Buscar el registro correspondiente
+                    var record = records.FirstOrDefault(r => r.InternalId == relation.Value);
+
+                    if (record != null)
+                    {
+                        // Asignar el valor y la base de datos
+                        node.display = record.Value;
+                        node.database = dbSelected;
+                    }
+                }
+            }
+            else
+            {
+                // Procesar los hijos recursivamente
+                foreach (var child in node.hijos)
+                {
+                    UpdateLeafNodeValues(child, records, codeRelations);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Propaga los valores hacia arriba, sumando los valores de los hijos
+        /// </summary>
+        private void PropagateValuesUpward(Presupuesto node)
+        {
+            // Si no tiene hijos, ya tiene su valor asignado
+            if (node.hijos == null || !node.hijos.Any())
+            {
+                return;
+            }
+
+            // Procesar recursivamente los hijos primero
+            foreach (var child in node.hijos)
+            {
+                PropagateValuesUpward(child);
+            }
+
+            // El valor del nodo es la suma de los valores de sus hijos
+            node.display = node.hijos.Sum(h => h.display ?? 0);
+
+            // También asignar la base de datos al nodo padre
+            if (node.hijos.Any(h => h.database == dbSelected))
+            {
+                node.database = dbSelected;
+            }
+        }
+
+        /// <summary>
+        /// Actualiza los datos y refresca la UI
+        /// </summary>
+        private void RefreshDataAndUI()
+        {
+            // Actualizar current data
             currentData = presupuesto?.hijos?
                 .Concat(previous
                     .Where(p => p.Key == presupuesto.Id)
@@ -594,6 +765,28 @@ namespace Bc3_WPF.Screens
             makePagination();
             historial.Clear();
             Tabla.ItemsSource = showing;
+            updateDoughtChart();
+
+            // Actualizar los totales en las tarjetas informativas
+            if (med != "" && med != "N/A")
+            {
+                // Aquí puedes actualizar los totales mostrados en las tarjetas según los nuevos valores
+                Quantity.Text = presupuesto.display?.ToString("N2") ?? "0";
+
+                // También podrías mostrar diferentes totales según el medidor seleccionado
+                if (med.Contains("CO2") || med.Contains("CARBON"))
+                {
+                    QuantityTitle.Text = "Total Carbono";
+                }
+                else if (med.Contains("WATER") || med.Contains("AGUA"))
+                {
+                    QuantityTitle.Text = "Total Agua";
+                }
+                else
+                {
+                    QuantityTitle.Text = $"Total {med}";
+                }
+            }
 
             // Hide back button
             BackButton.Visibility = Visibility.Hidden;

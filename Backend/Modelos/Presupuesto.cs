@@ -1,5 +1,4 @@
 ﻿using System.Diagnostics.CodeAnalysis;
-
 namespace Bc3_WPF.backend.Modelos
 {
     public class Presupuesto
@@ -13,7 +12,9 @@ namespace Bc3_WPF.backend.Modelos
         public float? quantity { get; set; }
         public Boolean? outdated { get; set; }
         public List<double>? values { get; set; }
-        public double? display {  get; set; }
+        public double? display { get; set; }
+        // Nueva propiedad para la base de datos seleccionada
+        public string? database { get; set; }
 
         public void CalculateValues(string medidor)
         {
@@ -23,15 +24,14 @@ namespace Bc3_WPF.backend.Modelos
                 return;
             }
 
-            double acum = 0;
-
+            // Calcular los valores de todos los hijos primero
             foreach (var hijo in hijos)
             {
                 hijo.CalculateValues(medidor);
-                acum += hijo.display ?? 0;
             }
 
-            display = acum;
+            // El display de este presupuesto es la suma del display de sus hijos
+            display = hijos.Sum(h => h.display ?? 0);
         }
 
         private void SetValues(string medidor)
@@ -40,7 +40,8 @@ namespace Bc3_WPF.backend.Modelos
             {
                 int index = medidores.IndexOf(medidor);
                 float Quantity = quantity ?? 0;
-                display = values[index] * Quantity;
+                double value = values[index];
+                display = Math.Round(values[index] * Quantity, 1);
             }
             else
             {
@@ -51,8 +52,8 @@ namespace Bc3_WPF.backend.Modelos
         public void NullValues()
         {
             hijos?.ForEach(h => h.NullValues());
-
             display = 0;
+            database = null; // Reiniciar también la base de datos seleccionada
         }
     }
 }
