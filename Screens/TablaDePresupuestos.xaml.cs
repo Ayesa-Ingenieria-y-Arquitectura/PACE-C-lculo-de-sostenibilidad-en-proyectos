@@ -1,7 +1,11 @@
-﻿using System.Collections.ObjectModel;
+﻿using System;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.IO;
+using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Forms; // Para FolderBrowserDialog
 using Bc3_WPF.backend.Modelos;
 using Bc3_WPF.backend.Services;
 using Bc3_WPF.Backend.Auxiliar;
@@ -13,6 +17,7 @@ namespace Bc3_WPF.Screens
 {
     public partial class TablaDePresupuestos : System.Windows.Controls.UserControl
     {
+        #region Private Fields
         private Presupuesto? presupuesto;
         private List<KeyValuePair<string, List<Presupuesto>>> historial = new();
         private List<Presupuesto> currentData = new();
@@ -30,11 +35,18 @@ namespace Bc3_WPF.Screens
         private decimal? pages;
         private string? fileName;
         private Pie? chartData;
+        #endregion
 
-        public TablaDePresupuestos() => InitializeComponent();
+        public TablaDePresupuestos()
+        {
+            InitializeComponent();
+        }
 
-        #region TABLE-SET_UI
+        #region File Loading & UI Setup
 
+        /// <summary>
+        /// Handles the BC3 file loading process
+        /// </summary>
         private void LoadBC3(object sender, RoutedEventArgs e)
         {
             Microsoft.Win32.OpenFileDialog ofd = new()
@@ -47,7 +59,9 @@ namespace Bc3_WPF.Screens
             {
                 fileName = Path.GetFileNameWithoutExtension(ofd.SafeFileName);
                 string filePath = ofd.FileName;
-                var data = filePath.EndsWith(".bc3") ? presupuestoService.loadFromBC3(filePath) : presupuestoService.loadFromJson(filePath);
+                var data = filePath.EndsWith(".bc3")
+                    ? presupuestoService.loadFromBC3(filePath)
+                    : presupuestoService.loadFromJson(filePath);
 
                 presupuesto = data.Item1;
                 medidores = data.Item2.ToList();
@@ -58,134 +72,233 @@ namespace Bc3_WPF.Screens
                 currentData = presupuesto?.hijos ?? new();
                 chartData = new Pie();
 
-                
+                // Initialize UI components with data
                 makePagination();
                 SetupUI();
                 updateDoughtChart();
                 getMedidores();
 
+                // Initialize chart data
                 Dictionary<string, double?> dict = new();
                 foreach (string s in medidores)
                 {
                     presupuesto.CalculateValues(s);
                     dict[s] = presupuesto.hijos.Select(e => e.display).Sum();
                 }
-                KeyValuePair<string, Dictionary<string, double?>> k = new KeyValuePair<string, Dictionary<string, double?>>("Initial", dict);
-                chartNumber.Add(k);
+
+                chartNumber.Add(new KeyValuePair<string, Dictionary<string, double?>>("Initial", dict));
             }
         }
 
+        /// <summary>
+        /// Sets up the UI components after loading a file
+        /// </summary>
         private void SetupUI()
         {
-            Titulo.Text = $"🗃️  File: {fileName}";
+            // Update text elements
+            Titulo.Text = $" File: {fileName}";
             TitleTable.Text = presupuesto?.name;
-            Chart.Title = chartData?.TitleChart;
-            PieChart.Title = chartData?.TitlePie;
 
+            if (chartData != null)
+            {
+                Chart.Title = chartData.TitleChart;
+                PieChart.Title = chartData.TitlePie;
+            }
+
+            // Update visibility of UI components
             RectangleInfo.Visibility = Visibility.Visible;
-            //ChartSection.Visibility = Visibility.Visible;
             TableSection.Visibility = Visibility.Visible;
             Paginator.Visibility = Visibility.Visible;
+
+            // Hide initial components
             FileButton.Visibility = Visibility.Hidden;
+            InitialOverlay.Visibility = Visibility.Collapsed;
+
+            // Set data sources
             Tabla.ItemsSource = showing;
             SelectMedidor.ItemsSource = medidores;
+
+            // Setup tree
+            treeInfo.Clear();
             treeInfo.Add(presupuesto);
             Tree.ItemsSource = treeInfo;
+
+            // Show save button if applicable
+            SaveButton.Visibility = previous.Count > 0 ? Visibility.Visible : Visibility.Hidden;
+
+            // Make sure charts are hidden and table takes full space initially
+            ChartSection.Visibility = Visibility.Collapsed;
+            Grid.SetRow(TableSection, 2);
+            Grid.SetRowSpan(TableSection, 2);
+            ToggleGraphs.Content = "Show Graphs";
         }
 
+        #endregion
+
+        #region Navigation & Tree Handling
+
+        /// <summary>
+        /// Handles clicking on a node with children in the data grid
+        /// </summary>
         private void handleHijos(object sender, RoutedEventArgs e)
         {
             if (sender is System.Windows.Controls.Button button && button.DataContext is Presupuesto item && item.hijos != null)
             {
-                historial.Add(new(item.Id, currentData));
-                currentData = item.hijos.Concat(previous.Where(p => p.Key == item.Id).Select(p => p.Value)).OrderBy(p => p.Id).ToList();
-                
-                makePagination();
-                updateDoughtChart();
-                Tabla.ItemsSource = showing;
-                BackButton.Visibility = historial.Count > 0 ? Visibility.Visible : Visibility.Hidden;
+                NavigateToChildren(item);
             }
         }
 
+        /// <summary>
+        /// Handles tree item click
+        /// </summary>
         private void TreeClick(object sender, RoutedEventArgs e)
         {
             if (sender is System.Windows.Controls.Button button && button.DataContext is Presupuesto item)
             {
                 if (item.hijos == null || item.hijos.Count == 0)
                 {
-                    IdField.ItemsSource = idArray[item.category];
-                    SplitTable.ItemsSource = new List<Presupuesto> { new() { Id = item.Id, name = item.name, quantity = item.quantity} };
-                    SplitPopUp.IsOpen = !SplitPopUp.IsOpen;
+                    PrepareAndShowSplitPopup(item);
                 }
                 else
                 {
-                    historial.Add(new(item.Id, currentData));
-                    currentData = item.hijos.Concat(previous.Where(p => p.Key == item.Id).Select(p => p.Value)).OrderBy(p => p.Id).ToList();
-
-                    makePagination();
-                    updateDoughtChart();
-                    Tabla.ItemsSource = showing;
-                    BackButton.Visibility = historial.Count > 0 ? Visibility.Visible : Visibility.Hidden;
+                    NavigateToChildren(item);
                 }
             }
         }
 
-        #endregion
+        /// <summary>
+        /// Navigates to the children of a given item
+        /// </summary>
+        private void NavigateToChildren(Presupuesto item)
+        {
+            // Add current data to history
+            historial.Add(new(item.Id, currentData));
 
-        #region PAGES
+            // Set current data to item's children plus any previous entries with same parent ID
+            currentData = item.hijos.Concat(previous
+                .Where(p => p.Key == item.Id)
+                .Select(p => p.Value))
+                .OrderBy(p => p.Id)
+                .ToList();
+
+            // Update UI
+            makePagination();
+            updateDoughtChart();
+            Tabla.ItemsSource = showing;
+
+            // Show back button if we have history
+            BackButton.Visibility = historial.Count > 0 ? Visibility.Visible : Visibility.Hidden;
+        }
+
+        /// <summary>
+        /// Go back to previous level in navigation
+        /// </summary>
         private void BackButtonClick(object sender, RoutedEventArgs e)
         {
             if (historial.Count > 0)
             {
                 currentData = historial.Last().Value;
                 historial.RemoveAt(historial.Count - 1);
+
                 makePagination();
                 updateDoughtChart();
                 Tabla.ItemsSource = showing;
+
                 BackButton.Visibility = historial.Count == 0 ? Visibility.Hidden : Visibility.Visible;
             }
         }
 
+        #endregion
+
+        #region Pagination
+
+        /// <summary>
+        /// Changes the current page by the given step
+        /// </summary>
         private void ChangePage(int step)
         {
             pageNumber += step;
             int lowerBound = (pageNumber - 1) * rowsPerPage;
             showing = currentData.Skip(lowerBound).Take(rowsPerPage).ToList();
             Tabla.ItemsSource = showing;
-            PageNumber.Text = $"Page {pageNumber} / {pages}";
+            PageNumber.Text = $"Page {pageNumber} of {pages}";
         }
 
-        private void PreviousPage(object sender, RoutedEventArgs e) { if (pageNumber > 1) ChangePage(-1); updateDoughtChart(); }
-        private void NextPage(object sender, RoutedEventArgs e) { if (pageNumber < pages) ChangePage(1); updateDoughtChart(); }
+        private void PreviousPage(object sender, RoutedEventArgs e)
+        {
+            if (pageNumber > 1)
+            {
+                ChangePage(-1);
+                updateDoughtChart();
+            }
+        }
 
+        private void NextPage(object sender, RoutedEventArgs e)
+        {
+            if (pageNumber < pages)
+            {
+                ChangePage(1);
+                updateDoughtChart();
+            }
+        }
+
+        /// <summary>
+        /// Sets up pagination controls based on current data
+        /// </summary>
         private void makePagination()
         {
             pages = Math.Ceiling((decimal)currentData.Count / rowsPerPage);
             pageNumber = 1;
             showing = currentData.Take(rowsPerPage).ToList();
+
+            // Update visibility of pagination controls
             Next.Visibility = pages > 1 ? Visibility.Visible : Visibility.Hidden;
             Previous.Visibility = pages > 1 ? Visibility.Visible : Visibility.Hidden;
             PageNumber.Visibility = pages > 1 ? Visibility.Visible : Visibility.Hidden;
-            PageNumber.Text = $"Page {pageNumber} / {pages}";
+            PageNumber.Text = $"Page {pageNumber} of {pages}";
 
             updateDoughtChart();
         }
 
         #endregion
 
-        #region SPLIT
+        #region Split Functionality
+
+        /// <summary>
+        /// Prepares and shows the split popup for a given item
+        /// </summary>
+        private void PrepareAndShowSplitPopup(Presupuesto item)
+        {
+            IdField.ItemsSource = idArray[item.category];
+            SplitTable.ItemsSource = new List<Presupuesto> {
+                new() {
+                    Id = item.Id,
+                    name = item.name,
+                    quantity = item.quantity
+                }
+            };
+            SplitPopUp.IsOpen = true;
+        }
+
+        /// <summary>
+        /// Handles split button click in the data grid
+        /// </summary>
         private void handleSplit(object sender, RoutedEventArgs e)
         {
             if (sender is System.Windows.Controls.Button button && button.DataContext is Presupuesto item)
             {
-                IdField.ItemsSource = idArray[item.category];
-                SplitTable.ItemsSource = new List<Presupuesto> { new() { Id = item.Id, name = item.name, quantity = item.quantity } };
-                SplitPopUp.IsOpen = !SplitPopUp.IsOpen;
+                PrepareAndShowSplitPopup(item);
             }
         }
 
+        /// <summary>
+        /// Closes the split popup
+        /// </summary>
         private void CloseSplit(object sender, RoutedEventArgs e) => SplitPopUp.IsOpen = false;
 
+        /// <summary>
+        /// Handles the split creation process
+        /// </summary>
         private void MakeSplit(object sender, RoutedEventArgs e)
         {
             if (SplitTable.ItemsSource is List<Presupuesto> splitData && splitData.Any())
@@ -210,9 +323,12 @@ namespace Bc3_WPF.Screens
             }
         }
 
+        /// <summary>
+        /// Updates split data with details from original items
+        /// </summary>
         private void UpdateSplitData(List<Presupuesto> data)
         {
-            foreach(Presupuesto p in data)
+            foreach (Presupuesto p in data)
             {
                 Presupuesto og = presupuestoService.FindPresupuestoById(presupuesto, p.Id);
                 p.InternalId = og.InternalId;
@@ -222,43 +338,63 @@ namespace Bc3_WPF.Screens
             }
         }
 
+        /// <summary>
+        /// Gets the parent ID based on navigation history
+        /// </summary>
         private string GetParentId()
         {
             return historial.Count == 0 ? presupuesto?.Id ?? "" : historial.Last().Key;
         }
 
+        /// <summary>
+        /// Filters out invalid items from split data
+        /// </summary>
         private List<Presupuesto> FilterSplitData(List<Presupuesto> data)
         {
             return data.Where(p => !string.IsNullOrEmpty(p.Id) && p.quantity.HasValue && p.quantity.Value != 0).ToList();
         }
 
+        /// <summary>
+        /// Validates if split data quantities match original
+        /// </summary>
         private bool IsValidSplitData(Presupuesto original, List<Presupuesto> splitData)
         {
             return original.quantity == splitData.Sum(p => p.quantity);
         }
 
+        /// <summary>
+        /// Processes valid split data and updates UI
+        /// </summary>
         private void ProcessValidSplitData(Presupuesto original, string parentId, List<Presupuesto> splitData)
         {
             previous.Add(new(parentId, original));
             presupuesto = Romper.change(presupuesto, historial, splitData, original.Id, true);
             historial.Clear();
 
-
+            // Update chart data
             Dictionary<string, double?> dict = new();
             foreach (string s in medidores)
             {
                 presupuesto.CalculateValues(s);
                 dict[s] = presupuesto.display;
             }
-            KeyValuePair<string, Dictionary<string, double?>> k = new KeyValuePair<string, Dictionary<string, double?>>("change " + original.Id, dict);
-            chartNumber.Add(k);
 
-            if(med != "" && med != "N/A")
+            chartNumber.Add(new KeyValuePair<string, Dictionary<string, double?>>("change " + original.Id, dict));
+
+            if (med != "" && med != "N/A")
             {
                 presupuesto.CalculateValues(med);
             }
-            currentData = presupuesto?.hijos?.Concat(previous.Where(p => p.Key == presupuesto.Id).Select(p => p.Value)).OrderBy(p => p.Id).ToList() ?? new();
 
+            // Update current data
+            currentData = presupuesto?.hijos?
+                .Concat(previous
+                    .Where(p => p.Key == presupuesto.Id)
+                    .Select(p => p.Value))
+                .OrderBy(p => p.Id)
+                .ToList() ?? new();
+
+            // Update UI
             makePagination();
             updateDoughtChart();
             getMedidores();
@@ -268,6 +404,9 @@ namespace Bc3_WPF.Screens
             BackButton.Visibility = Visibility.Hidden;
         }
 
+        /// <summary>
+        /// Handles invalid split data with appropriate error message
+        /// </summary>
         private void HandleInvalidSplitData(List<Presupuesto> splitData)
         {
             SplitPopUp.IsOpen = false;
@@ -279,84 +418,113 @@ namespace Bc3_WPF.Screens
             System.Windows.MessageBox.Show(errorMessage, "Alert", MessageBoxButton.OK, MessageBoxImage.Error);
         }
 
+        /// <summary>
+        /// Handles save button click to export data
+        /// </summary>
         private void SaveButtonClick(object sender, RoutedEventArgs e)
         {
             using FolderBrowserDialog dialog = new() { Description = "Choose a folder to save the JSON file" };
             if (dialog.ShowDialog() == DialogResult.OK)
             {
-                string filePath = Path.Combine(dialog.SelectedPath, $"{fileName}-1.json");
+                string filePath = Path.Combine(dialog.SelectedPath, $"{fileName}-modified.json");
                 try
                 {
                     presupuestoService.saveJson(filePath, presupuesto);
-                    System.Windows.MessageBox.Show($"File saved in {filePath}", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
+                    System.Windows.MessageBox.Show($"File saved as {filePath}", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
                 }
                 catch (Exception ex)
                 {
-                    System.Windows.MessageBox.Show($"Failed at saving file: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                    System.Windows.MessageBox.Show($"Failed to save file: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
                 }
             }
         }
 
         #endregion
 
-        #region CHARTING
+        #region Charting
+
+        /// <summary>
+        /// Updates the chart data and display
+        /// </summary>
         private void updateDoughtChart()
         {
-            //var validData = showing.GroupBy(e => e.category).ToDictionary(e => e.Key, e => e.Select(e => e.display?? 0).Sum());
-            var data2 = chartNumber.Select(e => new KeyValuePair<string, double?>(e.Key, e.Value[med])).ToList();
+            if (chartData == null)
+                return;
 
-            //Pie.setDoughtData(validData, chartData);
+            var data2 = chartNumber
+                .Select(e => new KeyValuePair<string, double?>(e.Key, e.Value.ContainsKey(med) ? e.Value[med] : 0))
+                .ToList();
+
             Pie.updateLineChart(data2, chartData);
+
+            // Update chart controls
             PieChart.Series = chartData.Series;
             Chart.Series = chartData.Series2;
             Chart.XAxes = chartData.axes;
-
-            SetChartVisibility(true);
         }
 
-        private void SetChartVisibility(bool isVisible)
+        /// <summary>
+        /// Toggles visibility of charts section
+        /// </summary>
+        private void ShowGraphs(object sender, RoutedEventArgs e)
         {
-            PieRectangle.Visibility = isVisible ? Visibility.Visible : Visibility.Hidden;
-            ChartRectangle.Visibility = isVisible ? Visibility.Visible : Visibility.Hidden;
+            bool isChartsVisible = ChartSection.Visibility == Visibility.Visible;
+            ToggleGraphVisibility(!isChartsVisible);
         }
 
-        private void ShowGraphs(object sender, EventArgs e)
-        {
-            if (sender is System.Windows.Controls.Button button)
-            {
-                bool isChartsVisible = ChartSection.Visibility == Visibility.Visible;
-                ToggleGraphVisibility(!isChartsVisible);
-            }
-        }
-
+        /// <summary>
+        /// Shows or hides the graphs section
+        /// </summary>
         private void ToggleGraphVisibility(bool showGraphs)
         {
+            // Adjust rows per page based on charts visibility
             rowsPerPage = showGraphs ? 5 : 20;
+
+            // Set table section position and row span
             Grid.SetRow(TableSection, showGraphs ? 3 : 2);
+            Grid.SetRowSpan(TableSection, showGraphs ? 1 : 2);
+
+            // Update pagination
             makePagination();
+
+            // Set charts visibility
             ChartSection.Visibility = showGraphs ? Visibility.Visible : Visibility.Hidden;
+
+            // Update button text
             ToggleGraphs.Content = showGraphs ? "Hide Graphs" : "Show Graphs";
+
+            // Refresh table
             Tabla.ItemsSource = showing;
         }
 
         #endregion
 
-        #region MEASUREMENTS
+        #region Measurements
+
+        /// <summary>
+        /// Updates the measurement displays
+        /// </summary>
         private void getMedidores()
         {
-            //var processedData = CalculateQuantityAndConcepts(presupuesto?.hijos, new HashSet<string> { presupuesto?.Id ?? string.Empty });
-            var Carbono = 0;
-            var Agua = 0;
+            // Sample values - replace with your actual calculation
+            var carbono = 0; // Replace with actual carbon calculation
+            var agua = 0;    // Replace with actual water calculation
 
-            Quantity.Text = ((int)Carbono).ToString();
-            Concepts.Text = ((int)Agua).ToString();
-            // idArray = processedData.ids;
+            Quantity.Text = carbono.ToString();
+            Concepts.Text = agua.ToString();
+
             SetMedidorVisibility(true);
         }
 
-        private (float TotalQuantity, int ConceptCount, HashSet<string> ids) CalculateQuantityAndConcepts(List<Presupuesto>? presupuestos, HashSet<string> uniqueConcepts)
+        /// <summary>
+        /// Calculates quantity and concepts recursively
+        /// </summary>
+        private (float TotalQuantity, int ConceptCount, HashSet<string> ids) CalculateQuantityAndConcepts(
+            List<Presupuesto>? presupuestos,
+            HashSet<string> uniqueConcepts)
         {
-            if (presupuestos == null) return (0, 0, []);
+            if (presupuestos == null)
+                return (0, 0, new HashSet<string>());
 
             float totalQuantity = 0;
             foreach (var p in presupuestos)
@@ -366,48 +534,69 @@ namespace Bc3_WPF.Screens
                 var subResult = CalculateQuantityAndConcepts(p.hijos, uniqueConcepts);
                 totalQuantity += subResult.TotalQuantity;
             }
+
             return (totalQuantity, uniqueConcepts.Count, uniqueConcepts);
         }
 
+        /// <summary>
+        /// Sets visibility of measurement UI elements
+        /// </summary>
         private void SetMedidorVisibility(bool isVisible)
         {
-            Concepts.Visibility =  Visibility.Visible;
-            ConceptTitle.Visibility =  Visibility.Visible;
-            ConceptRectangle.Visibility =  Visibility.Visible;
-            Quantity.Visibility = Visibility.Visible;
-            QuantityRectangle.Visibility = Visibility.Visible;
-            QuantityTitle.Visibility =  Visibility.Visible;
+            Visibility visibility = isVisible ? Visibility.Visible : Visibility.Hidden;
+
+            Concepts.Visibility = visibility;
+            ConceptTitle.Visibility = visibility;
+            Quantity.Visibility = visibility;
+            QuantityTitle.Visibility = visibility;
         }
 
         #endregion
 
-        #region DROPDOWN
+        #region Medidor Selection
 
-        private void handleChangeMedidor(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
+        /// <summary>
+        /// Handles change in medidor selection
+        /// </summary>
+        private void handleChangeMedidor(object sender, SelectionChangedEventArgs e)
         {
+            if (SelectMedidor?.SelectedItem == null || presupuesto == null)
+                return;
 
-            string selectedContent = SelectMedidor?.SelectedItem.ToString();
+            string selectedContent = SelectMedidor.SelectedItem.ToString();
 
-            if(presupuesto != null && selectedContent != null && selectedContent != "N/A")
+            if (selectedContent != null && selectedContent != "N/A")
             {
+                // Calculate values for selected medidor
                 presupuesto.CalculateValues(selectedContent);
 
+                // Update UI
                 TablaMedidor.Header = selectedContent;
                 med = selectedContent;
-                currentData = presupuesto?.hijos?.Concat(previous.Where(p => p.Key == presupuesto.Id).Select(p => p.Value)).OrderBy(p => p.Id).ToList() ?? new();
-                makePagination();
-                historial.Clear();
-                Tabla.ItemsSource = showing;
                 TablaMedidor.Visibility = Visibility.Visible;
-            } else {
+            }
+            else
+            {
+                // Reset values
                 presupuesto.NullValues();
-                med = selectedContent;
-                currentData = presupuesto?.hijos?.Concat(previous.Where(p => p.Key == presupuesto.Id).Select(p => p.Value)).OrderBy(p => p.Id).ToList() ?? new();
-                makePagination();
-                historial.Clear();
-                Tabla.ItemsSource = showing;
+                med = selectedContent ?? "";
                 TablaMedidor.Visibility = Visibility.Hidden;
             }
+
+            // Update current data and UI
+            currentData = presupuesto?.hijos?
+                .Concat(previous
+                    .Where(p => p.Key == presupuesto.Id)
+                    .Select(p => p.Value))
+                .OrderBy(p => p.Id)
+                .ToList() ?? new();
+
+            makePagination();
+            historial.Clear();
+            Tabla.ItemsSource = showing;
+
+            // Hide back button
+            BackButton.Visibility = Visibility.Hidden;
         }
         #endregion
     }

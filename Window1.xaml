@@ -4,28 +4,100 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:Bc3_WPF"
+        xmlns:screens="clr-namespace:Bc3_WPF.Screens"
         mc:Ignorable="d"
-        Title="Window1" Height="450" Width="800">
-    <Grid>
-        <!-- Menu de Navegación -->
-        <Button Content="≡" Height="30" Width="30" Background="White" BorderThickness="0" FontSize="20" Click="DisplayMenu"
-HorizontalAlignment="Left" VerticalAlignment="Top" x:Name="MenuButton">
-            <Button.Template>
-                <ControlTemplate TargetType="Button">
-                    <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="0">
-                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                    </Border>
-                </ControlTemplate>
-            </Button.Template>
-        </Button>
+        Title="BC3 Explorer" 
+        Height="800" 
+        Width="1280"
+        WindowStartupLocation="CenterScreen"
+        Background="#F5F7FA">
+    <Window.Resources>
+        <!-- Button style for menu buttons -->
+        <Style x:Key="MenuButtonStyle" TargetType="Button">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="FontSize" Value="18"/>
+            <Setter Property="Width" Value="50"/>
+            <Setter Property="Height" Value="50"/>
+            <Setter Property="Margin" Value="0,5"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Foreground" Value="#34495E"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}" 
+                                BorderBrush="{TemplateBinding BorderBrush}" 
+                                BorderThickness="0"
+                                CornerRadius="5">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter Property="Background" Value="#E1F5FE"/>
+                                <Setter Property="Foreground" Value="#3498DB"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter Property="Background" Value="#B3E5FC"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </Window.Resources>
 
-        <StackPanel Orientation="Vertical" Background="LightGray" Width="30" HorizontalAlignment="Left" Visibility="Hidden" x:Name="Menu">
-            <Button Content="≡" Height="30" Width="30" Background="LightGray" BorderThickness="0" FontSize="20" Click="DisplayMenu"/>
-            <Button Content="🏠" Height="30" Width="30" BorderThickness="0" Background="LightGray" Click="HomeWindows"/>
-            <Button Content="📂" Height="30" Width="30" BorderThickness="0" Background="LightGray" Click="newFile"/>
-            <Button Content="📑" Height="30" Width="30" BorderThickness="0" Background="LightGray" Click="CompareFiles"/>
-        </StackPanel>
-        
-        <ContentControl x:Name="MainContent"/>
+    <Grid>
+        <!-- Menu de Navegación (Panel lateral) -->
+        <Border Background="White" 
+                Width="60" 
+                HorizontalAlignment="Left"
+                BorderThickness="0,0,1,0"
+                BorderBrush="#DDDDDD">
+            <StackPanel x:Name="Menu"
+                        Orientation="Vertical" 
+                        Background="White" 
+                        HorizontalAlignment="Left"
+                        VerticalAlignment="Top"
+                        Margin="0,10,0,0">
+                <!-- Botón de Menú -->
+
+                <!-- Botón de Home -->
+                <Button Content="🏠" 
+                        Style="{StaticResource MenuButtonStyle}"
+                        ToolTip="Home"
+                        Click="HomeWindows"/>
+
+                <!-- Botón de Exploración de Archivos -->
+                <Button Content="📂" 
+                        Style="{StaticResource MenuButtonStyle}"
+                        ToolTip="Explore Files"
+                        Click="newFile"/>
+
+                <!-- Botón de Comparación de Archivos -->
+                <Button Content="📑" 
+                        Style="{StaticResource MenuButtonStyle}"
+                        ToolTip="Compare Files"
+                        Click="CompareFiles"/>
+            </StackPanel>
+        </Border>
+
+        <!-- Barra de título personalizada -->
+        <Border Height="40" 
+                VerticalAlignment="Top" 
+                Background="White"
+                BorderThickness="0,0,0,1"
+                BorderBrush="#DDDDDD"
+                Margin="60,0,0,0">
+            <TextBlock Text="BC3 Explorer" 
+                       FontSize="16" 
+                       FontWeight="SemiBold" 
+                       VerticalAlignment="Center"
+                       Margin="20,0,0,0"
+                       Foreground="#34495E"/>
+        </Border>
+
+        <!-- Contenedor principal -->
+        <ContentControl x:Name="MainContent" 
+                        Margin="60,40,0,0"/>
     </Grid>
 </Window>

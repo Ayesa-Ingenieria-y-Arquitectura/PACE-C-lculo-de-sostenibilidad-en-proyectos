@@ -5,13 +5,206 @@
       xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
       xmlns:local="clr-namespace:Bc3_WPF"
       mc:Ignorable="d" 
-      d:DesignHeight="450" d:DesignWidth="800">
+      d:DesignHeight="750" d:DesignWidth="1200"
+      Background="#F5F7FA">
+
+    <UserControl.Resources>
+        <!-- Color palette -->
+        <SolidColorBrush x:Key="PrimaryColor" Color="#3498DB"/>
+        <SolidColorBrush x:Key="SecondaryColor" Color="#2ECC71"/>
+        <SolidColorBrush x:Key="AccentColor" Color="#9B59B6"/>
+        <SolidColorBrush x:Key="DarkTextColor" Color="#2C3E50"/>
+        <SolidColorBrush x:Key="LightTextColor" Color="#ECF0F1"/>
+        <SolidColorBrush x:Key="BackgroundLight" Color="#FFFFFF"/>
+
+        <!-- Button style -->
+        <Style x:Key="ActionButton" TargetType="Button">
+            <Setter Property="Background" Value="{StaticResource PrimaryColor}"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Padding" Value="20,12"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}"
+                                CornerRadius="6"
+                                Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter Property="Background" Value="#2980B9"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter Property="Background" Value="#1F618D"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Card style -->
+        <Style x:Key="FeatureCard" TargetType="Border">
+            <Setter Property="Background" Value="{StaticResource BackgroundLight}"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="CornerRadius" Value="10"/>
+            <Setter Property="Margin" Value="10"/>
+            <Setter Property="Effect">
+                <Setter.Value>
+                    <DropShadowEffect BlurRadius="15" ShadowDepth="2" Opacity="0.2" Color="#555"/>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </UserControl.Resources>
 
     <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
 
-        <!--Título-->
-        <TextBlock FontSize="40" FontWeight="Bold" VerticalAlignment="Center" HorizontalAlignment="Center"
-       Text="PACE: Cálculo de Sostenibilidad en Proyectos"/>
+        <!-- Header Section -->
+        <Grid Grid.Row="0">
+            <Border>
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
 
+                    <!-- Main Title and Description -->
+                    <StackPanel Grid.Column="0" Margin="50,50,0,30">
+                        <TextBlock Text="PACE" 
+                                   FontSize="48" 
+                                   FontWeight="Bold" 
+                                   Foreground="{StaticResource PrimaryColor}"/>
+
+                        <TextBlock Text="Cálculo de Sostenibilidad en Proyectos" 
+                                   FontSize="32" 
+                                   FontWeight="SemiBold" 
+                                   Foreground="{StaticResource DarkTextColor}"
+                                   Margin="0,5,0,0"/>
+
+                        <TextBlock Text="Analice, visualice y optimice la sostenibilidad de sus proyectos" 
+                                   FontSize="18" 
+                                   Foreground="#95A5A6"
+                                   Margin="0,15,0,0"
+                                   TextWrapping="Wrap"
+                                   MaxWidth="600"/>
+
+                        <StackPanel Orientation="Horizontal" Margin="0,30,0,0">
+                            <Button Content="Explorar Archivos BC3" 
+                                    Style="{StaticResource ActionButton}"
+                                    Margin="0,0,15,0"
+                                    Click="ExploreFiles_Click"/>
+
+                            <Button Content="Comparar Archivos" 
+                                    Style="{StaticResource ActionButton}"
+                                    Background="{StaticResource SecondaryColor}"/>
+                        </StackPanel>
+                    </StackPanel>
+
+                    <!-- Illustration or logo -->
+                    <Border Grid.Column="1" 
+                            Width="350" 
+                            Height="350"
+                            CornerRadius="10"
+                            Margin="0,30,50,30"
+                            Background="#E1F5FE">
+                        <TextBlock Text="🌱" 
+                                   FontSize="180" 
+                                   HorizontalAlignment="Center" 
+                                   VerticalAlignment="Center"/>
+                    </Border>
+                </Grid>
+            </Border>
+        </Grid>
+
+        <!-- Version Info -->
+        <TextBlock Grid.Row="1" 
+                   Text="Versión 1.0" 
+                   Margin="50,0,0,10" 
+                   Foreground="#95A5A6"/>
+
+        <!-- Features Section -->
+        <Grid Grid.Row="2" Margin="50,10,50,50">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+
+            <!-- Card 1: Análisis BC3 -->
+            <Border Grid.Column="0" Style="{StaticResource FeatureCard}">
+                <StackPanel Margin="25">
+                    <TextBlock Text="📊 Análisis BC3" 
+                               FontSize="20" 
+                               FontWeight="SemiBold" 
+                               Foreground="{StaticResource DarkTextColor}"/>
+
+                    <TextBlock TextWrapping="Wrap" 
+                               Margin="0,15,0,0" 
+                               LineHeight="24">
+                        Explore archivos BC3 para analizar la sostenibilidad de sus proyectos de construcción. Identifique áreas de mejora y optimice sus decisiones.
+                    </TextBlock>
+
+                    <Button Content="Analizar" 
+                            HorizontalAlignment="Left" 
+                            Margin="0,20,0,0"
+                            Style="{StaticResource ActionButton}"
+                            Padding="15,8"
+                            Click="ExploreFiles_Click"/>
+                </StackPanel>
+            </Border>
+
+            <!-- Card 2: Métricas de Sostenibilidad -->
+            <Border Grid.Column="1" Style="{StaticResource FeatureCard}">
+                <StackPanel Margin="25">
+                    <TextBlock Text="🌍 Métricas de Sostenibilidad" 
+                               FontSize="20" 
+                               FontWeight="SemiBold" 
+                               Foreground="{StaticResource DarkTextColor}"/>
+
+                    <TextBlock TextWrapping="Wrap" 
+                               Margin="0,15,0,0" 
+                               LineHeight="24">
+                        Visualice indicadores clave como huella de carbono, consumo de agua y uso de energía. Compare con estándares y mejores prácticas.
+                    </TextBlock>
+
+                    <Button Content="Ver Métricas" 
+                            HorizontalAlignment="Left" 
+                            Margin="0,20,0,0"
+                            Style="{StaticResource ActionButton}"
+                            Background="{StaticResource SecondaryColor}"
+                            Padding="15,8"/>
+                </StackPanel>
+            </Border>
+
+            <!-- Card 3: Comparativa de Proyectos -->
+            <Border Grid.Column="2" Style="{StaticResource FeatureCard}">
+                <StackPanel Margin="25">
+                    <TextBlock Text="🔍 Comparativa de Proyectos" 
+                               FontSize="20" 
+                               FontWeight="SemiBold" 
+                               Foreground="{StaticResource DarkTextColor}"/>
+
+                    <TextBlock TextWrapping="Wrap" 
+                               Margin="0,15,0,0" 
+                               LineHeight="24">
+                        Compare diferentes versiones de sus proyectos para identificar mejoras. Evalúe el impacto de los cambios en la sostenibilidad global.
+                    </TextBlock>
+
+                    <Button Content="Comparar" 
+                            HorizontalAlignment="Left" 
+                            Margin="0,20,0,0"
+                            Style="{StaticResource ActionButton}"
+                            Background="{StaticResource AccentColor}"
+                            Padding="15,8"/>
+                </StackPanel>
+            </Border>
+        </Grid>
     </Grid>
 </UserControl>
