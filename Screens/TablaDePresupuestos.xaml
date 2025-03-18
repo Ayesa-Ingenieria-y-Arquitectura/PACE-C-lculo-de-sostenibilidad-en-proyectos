@@ -624,13 +624,13 @@
                           CanUserDeleteRows="False"
                           IsReadOnly="True">
                     <DataGrid.Columns>
-                        <DataGridTextColumn Header="Id" Binding="{Binding Id}" Width="Auto"/>
-                        <DataGridTextColumn Header="Internal Id" Binding="{Binding InternalId}" Width="Auto"/>
-                        <DataGridTextColumn Header="Description" Binding="{Binding name}" Width="*"/>
-                        <DataGridTextColumn Header="Category" Binding="{Binding category}" Width="Auto"/>
-                        <DataGridTextColumn Header="" x:Name="TablaMedidor" Binding="{Binding display}" Width="Auto" Visibility="Hidden"/>
-                        <DataGridTextColumn Header="Quantity" Binding="{Binding quantity}" Width="Auto"/>
-                        <DataGridTextColumn Header="Database" x:Name="TablaBaseDatos" Binding="{Binding database}" Width="Auto" Visibility="Hidden"/>
+                        <DataGridTextColumn Header="Id" Binding="{Binding Id}" Width="auto"/>
+                        <DataGridTextColumn Header="Internal Id" Binding="{Binding InternalId}" Width="auto"/>
+                        <DataGridTextColumn Header="Description" Binding="{Binding name}" Width="auto"/>
+                        <DataGridTextColumn Header="Category" Binding="{Binding category}" Width="auto"/>
+                        <DataGridTextColumn Header="" x:Name="TablaMedidor" Binding="{Binding display}" Width="auto" Visibility="Hidden"/>
+                        <DataGridTextColumn Header="Quantity" Binding="{Binding quantity}" Width="auto"/>
+                        <DataGridTextColumn Header="Database" x:Name="TablaBaseDatos" Binding="{Binding database}" Width="auto" Visibility="Hidden"/>
                         <DataGridTemplateColumn Header="Options" Width="Auto">
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>

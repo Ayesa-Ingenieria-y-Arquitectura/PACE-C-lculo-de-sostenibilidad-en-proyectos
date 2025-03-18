@@ -204,7 +204,6 @@ namespace Bc3_WPF.Screens
 
             // Update UI
             makePagination();
-            updateDoughtChart();
             Tabla.ItemsSource = showing;
 
             // Show back button if we have history
@@ -222,7 +221,6 @@ namespace Bc3_WPF.Screens
                 historial.RemoveAt(historial.Count - 1);
 
                 makePagination();
-                updateDoughtChart();
                 Tabla.ItemsSource = showing;
 
                 BackButton.Visibility = historial.Count == 0 ? Visibility.Hidden : Visibility.Visible;
@@ -250,7 +248,6 @@ namespace Bc3_WPF.Screens
             if (pageNumber > 1)
             {
                 ChangePage(-1);
-                updateDoughtChart();
             }
         }
 
@@ -259,7 +256,6 @@ namespace Bc3_WPF.Screens
             if (pageNumber < pages)
             {
                 ChangePage(1);
-                updateDoughtChart();
             }
         }
 
@@ -278,7 +274,6 @@ namespace Bc3_WPF.Screens
             PageNumber.Visibility = pages > 1 ? Visibility.Visible : Visibility.Hidden;
             PageNumber.Text = $"Page {pageNumber} of {pages}";
 
-            updateDoughtChart();
         }
 
         #endregion
@@ -476,7 +471,13 @@ namespace Bc3_WPF.Screens
                 .Select(e => new KeyValuePair<string, double?>(e.Key, e.Value.ContainsKey(med) ? e.Value[med] : 0))
                 .ToList();
 
+            var data = presupuestoService.toArray(presupuesto).Where(e => e.hijos == null || e.hijos.Count == 0)
+                .GroupBy(e => e.category).ToDictionary(e => e.Key, e => e.Sum(e => e.display));
+
             Pie.updateLineChart(data2, chartData);
+            Pie.setDoughtData(data, chartData);
+            Pie.setChartTitle("Evolución de " + med, chartData);
+            Pie.setDoughtTitle(med + " por Categoría", chartData);
 
             // Update chart controls
             PieChart.Series = chartData.Series;

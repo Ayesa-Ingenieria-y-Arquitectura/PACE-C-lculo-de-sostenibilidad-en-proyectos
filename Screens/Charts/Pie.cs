@@ -49,7 +49,7 @@ public class Pie
         TitleChart =
         new LabelVisual
         {
-            Text = "Carbono Total Por Base de datos",
+            Text = "Prueba 1",
             TextSize = 25,
             Padding = new LiveChartsCore.Drawing.Padding(15)
         };
@@ -62,9 +62,9 @@ public class Pie
         };
     }
 
-    public static void setDoughtData(Dictionary<string, double> data, Pie pie)
+    public static void setDoughtData(Dictionary<string?, double?>? data, Pie pie)
     {
-        List<double> values = data.Select(e => e.Value).ToList();
+        List<double?> values = data.Select(e => e.Value).ToList();
         List<string> names = data.Select(e => e.Key).ToList();
         int _index = 0;
 
@@ -74,6 +74,11 @@ public class Pie
             series.DataLabelsPosition = LiveChartsCore.Measure.PolarLabelsPosition.Start;
             series.DataLabelsSize = 15;
         });
+    }
+
+    public static void setDoughtTitle(string s, Pie pie)
+    {
+        pie.TitlePie.Text = s;
     }
 
     public static void updateLineChart(List<KeyValuePair<string, double?>> data, Pie pie)
@@ -113,5 +118,10 @@ public class Pie
         // Add the updated line series to the chart
         pie.Series2.Add(lineSeries);
         pie.axes = XAxes;
+    }
+
+    public static void setChartTitle(string s, Pie pie)
+    {
+        pie.TitleChart.Text = s;
     }
 }
