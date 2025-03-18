@@ -37,6 +37,7 @@ namespace Bc3_WPF.Screens
         private string? fileName;
         private Pie? chartData;
         private string dbSelected = "";
+        private Presupuesto? currentSelectedItem;
         #endregion
 
         public TablaDePresupuestos()
@@ -593,8 +594,8 @@ namespace Bc3_WPF.Screens
                 dbSelected = selectedContent;
 
                 // Mostrar la columna de base de datos
-                TablaBaseDatos.Header = selectedContent;
                 TablaBaseDatos.Visibility = Visibility.Visible;
+                ChangeDB.Visibility = Visibility.Visible;
 
                 // Actualizar los valores si ya hay un medidor seleccionado
                 if (med != "" && med != "N/A")
@@ -607,6 +608,7 @@ namespace Bc3_WPF.Screens
                 // Reset valores de base de datos
                 dbSelected = "";
                 TablaBaseDatos.Visibility = Visibility.Hidden;
+                ChangeDB.Visibility = Visibility.Hidden;
 
                 // Si hay un medidor seleccionado, usar el método original
                 if (med != "" && med != "N/A")
@@ -765,6 +767,7 @@ namespace Bc3_WPF.Screens
 
             makePagination();
             historial.Clear();
+            Tabla.Items.Refresh(); // Esto fuerza la actualización de las celdas
             Tabla.ItemsSource = showing;
             updateDoughtChart();
 
@@ -792,6 +795,219 @@ namespace Bc3_WPF.Screens
             // Hide back button
             BackButton.Visibility = Visibility.Hidden;
         }
+
+        #endregion
+
+        #region Change One Database
+
+        /// <summary>
+        /// Maneja el evento de clic en el botón de cambio de base de datos
+        /// </summary>
+        private void HandleChangeDatabase(object sender, RoutedEventArgs e)
+        {
+            if (sender is System.Windows.Controls.Button button && button.DataContext is Presupuesto item)
+            {
+                // Solo proceder si hay un medidor seleccionado
+                if (string.IsNullOrEmpty(med) || med == "N/A")
+                {
+                    System.Windows.MessageBox.Show("Debe seleccionar un medidor primero", "Aviso", MessageBoxButton.OK, MessageBoxImage.Information);
+                    return;
+                }
+
+                // Mostrar el popup para seleccionar la base de datos
+                ShowDatabaseSelectionPopup(item);
+            }
+        }
+
+        /// <summary>
+        /// Muestra el popup para seleccionar la base de datos
+        /// </summary>
+        private void ShowDatabaseSelectionPopup(Presupuesto item)
+        {
+            currentSelectedItem = item;
+
+            // Configurar la información del item
+            DbPopupItemId.Text = $"ID: {item.Id}";
+            DbPopupItemName.Text = $"Nombre: {item.name}";
+            DbPopupCurrentDb.Text = $"Base de datos actual: {(string.IsNullOrEmpty(item.database) ? "No asignada" : item.database)}";
+
+            // Llenar el combo con las bases de datos disponibles, excluyendo la actual
+            var availableDbs = dbs.Where(db => db != "N/A" && db != item.database).ToList();
+            DbPopupSelector.ItemsSource = availableDbs;
+
+            if (availableDbs.Any())
+            {
+                DbPopupSelector.SelectedIndex = 0;
+                DbPopupSelector.IsEnabled = true;
+                ApplyDbChange.IsEnabled = true;
+            }
+            else
+            {
+                DbPopupSelector.IsEnabled = false;
+                ApplyDbChange.IsEnabled = false;
+            }
+
+            // Mostrar el popup
+            DatabaseSelectionPopUp.IsOpen = true;
+        }
+
+        /// <summary>
+        /// Cierra el popup de selección de base de datos
+        /// </summary>
+        private void CloseDbPopup(object sender, RoutedEventArgs e)
+        {
+            DatabaseSelectionPopUp.IsOpen = false;
+            currentSelectedItem = null;
+        }
+
+        /// <summary>
+        /// Aplica el cambio de base de datos y actualiza los valores
+        /// </summary>
+        private void ApplyDatabaseChange(object sender, RoutedEventArgs e)
+        {
+            DatabaseSelectionPopUp.IsOpen = false;
+            if (currentSelectedItem == null || DbPopupSelector.SelectedItem == null)
+            {
+                DatabaseSelectionPopUp.IsOpen = false;
+                return;
+            }
+
+            string newDatabase = DbPopupSelector.SelectedItem.ToString();
+
+            // Llamar al método que cambia la base de datos y actualiza valores
+            ChangeDatabaseForItem(currentSelectedItem, newDatabase);
+
+            // Cerrar el popup
+            DatabaseSelectionPopUp.IsOpen = false;
+            currentSelectedItem = null;
+        }
+
+        /// <summary>
+        /// Cambia la base de datos para un presupuesto específico y actualiza los valores
+        /// </summary>
+        private void ChangeDatabaseForItem(Presupuesto item, string newDatabase)
+        {
+            if (item == null || string.IsNullOrEmpty(newDatabase) || newDatabase == "N/A")
+                return;
+
+            // Guardar el valor original para calcular la diferencia después
+            double? originalValue = item.display;
+
+            // Obtener registros de sostenibilidad
+            var sustainabilityRecords = SustainabilityService.getFromDatabase();
+
+            // Filtrar por la nueva base de datos y el medidor actual
+            var filteredRecords = sustainabilityRecords
+                .Where(sr => sr.Database == newDatabase && sr.Indicator == med)
+                .ToList();
+
+            // Obtener relaciones de código
+            var codeRelations = SustainabilityService.getCodeRelation(sustainabilityRecords);
+
+            // Buscar el ID interno correspondiente
+            var relation = codeRelations.FirstOrDefault(cr => cr.Key == item.Id);
+
+            if (!string.IsNullOrEmpty(relation.Value))
+            {
+                // Buscar el registro correspondiente en la nueva base de datos
+                var record = filteredRecords.FirstOrDefault(r => r.InternalId == relation.Value);
+
+                if (record != null)
+                {
+                    // Actualizar la base de datos y el valor
+                    item.database = newDatabase;
+                    item.display = Math.Round(record.Value * (item.quantity ?? 0), 1);
+
+                    // Calcular la diferencia para propagarla
+                    double valueDifference = (item.display ?? 0) - (originalValue ?? 0);
+
+                    // Propagar el cambio hacia arriba en la jerarquía
+                    PropagateChangeUpwards(presupuesto, item.Id, valueDifference);
+
+                    // Crear un registro del cambio para los gráficos
+                    Dictionary<string, double?> dict = new Dictionary<string, double?>();
+                    foreach (string s in medidores)
+                    {
+                        dict[s] = s == med ? presupuesto.display : 0;
+                    }
+                    chartNumber.Add(new KeyValuePair<string, Dictionary<string, double?>>("DB change " + item.Id, dict));
+
+                    DatabaseSelectionPopUp.IsOpen = false;
+                    // Actualizar la UI
+                    RefreshDataAndUI();
+                  
+
+                    System.Windows.MessageBox.Show($"Base de datos cambiada a {newDatabase} para el concepto {item.Id}",
+                        "Cambio aplicado", MessageBoxButton.OK, MessageBoxImage.Information);
+                }
+                else
+                {
+                    System.Windows.MessageBox.Show($"No se encontraron datos para este concepto en la base de datos {newDatabase}",
+                        "Información no disponible", MessageBoxButton.OK, MessageBoxImage.Information);
+                }
+            }
+            else
+            {
+                System.Windows.MessageBox.Show($"No se pudo encontrar una relación entre el ID externo y el ID interno para este concepto",
+                        "Error de relación", MessageBoxButton.OK, MessageBoxImage.Warning);
+            }
+        }
+
+        /// <summary>
+        /// Propaga un cambio de valor hacia arriba en la jerarquía
+        /// </summary>
+        private void PropagateChangeUpwards(Presupuesto node, string changedItemId, double valueDifference)
+        {
+            if (node == null)
+                return;
+
+            // Si este nodo tiene hijos, buscar entre ellos
+            if (node.hijos != null && node.hijos.Any())
+            {
+                // Comprobar si el elemento modificado está entre los hijos directos
+                var directChild = node.hijos.FirstOrDefault(h => h.Id == changedItemId);
+                if (directChild != null)
+                {
+                    // Actualizar el valor del nodo padre
+                    node.display = (node.display ?? 0) + valueDifference;
+
+                    // Buscar el padre de este nodo y continuar propagando
+                    if (historial.Count > 0)
+                    {
+                        string parentId = FindParentId(node.Id);
+                        if (!string.IsNullOrEmpty(parentId))
+                        {
+                            var parentNode = presupuestoService.FindPresupuestoById(presupuesto, parentId);
+                            PropagateChangeUpwards(parentNode, node.Id, valueDifference);
+                        }
+                    }
+                }
+                else
+                {
+                    // Buscar en los hijos recursivamente
+                    foreach (var child in node.hijos)
+                    {
+                        PropagateChangeUpwards(child, changedItemId, valueDifference);
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// Busca el ID del padre de un nodo a partir del historial
+        /// </summary>
+        private string FindParentId(string nodeId)
+        {
+            foreach (var entry in historial)
+            {
+                if (entry.Value.Any(p => p.Id == nodeId))
+                {
+                    return entry.Key;
+                }
+            }
+            return string.Empty;
+        }
+
         #endregion
     }
 }

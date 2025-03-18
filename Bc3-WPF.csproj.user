@@ -11,6 +11,9 @@
     <Compile Update="Screens\Comparator.xaml.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Update="Screens\Databases.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Update="Window1.xaml.cs">
       <SubType>Code</SubType>
     </Compile>
@@ -23,6 +26,9 @@
       <SubType>Designer</SubType>
     </Page>
     <Page Update="Screens\Comparator.xaml">
+      <SubType>Designer</SubType>
+    </Page>
+    <Page Update="Screens\Databases.xaml">
       <SubType>Designer</SubType>
     </Page>
     <Page Update="Window1.xaml">
