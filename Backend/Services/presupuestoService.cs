@@ -178,7 +178,21 @@ namespace Bc3_WPF.backend.Services
 
             return null;
         }
+
+        public static List<Presupuesto> toArray(Presupuesto p)
+        {
+            List<Presupuesto> res = [p];
+
+            if (p.hijos != null && p.hijos.Count != 0)
+            {
+                foreach (Presupuesto hijo in p.hijos)
+                {
+                    List<Presupuesto> aux = toArray(hijo);
+                    res.AddRange(aux);
+                }
+            }
+
+            return res;
+        }
     }
-
-
 }
