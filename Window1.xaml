@@ -66,18 +66,6 @@
                         Style="{StaticResource MenuButtonStyle}"
                         ToolTip="Home"
                         Click="HomeWindows"/>
-
-                <!-- Botón de Exploración de Archivos -->
-                <Button Content="📂" 
-                        Style="{StaticResource MenuButtonStyle}"
-                        ToolTip="Explore Files"
-                        Click="newFile"/>
-
-                <!-- Botón de Comparación de Archivos -->
-                <Button Content="📑" 
-                        Style="{StaticResource MenuButtonStyle}"
-                        ToolTip="Compare Files"
-                        Click="CompareFiles"/>
             </StackPanel>
         </Border>
 

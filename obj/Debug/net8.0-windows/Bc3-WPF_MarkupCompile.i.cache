@@ -10,11 +10,11 @@ none
 false
 TRACE;DEBUG;NET;NET8_0;NETCOREAPP
 C:\Users\prodriguezsa\source\repos\Bc3-WPF\App.xaml
-41175525940
+5-604960420
 
-181940454826
-223-2119131144
-Screens\Comparator.xaml;Screens\Home.xaml;Screens\TablaDePresupuestos.xaml;Window1.xaml;
+21-849385849
+230-1037584301
+Screens\Comparator.xaml;Screens\Databases.xaml;Screens\Home.xaml;Screens\TablaDePresupuestos.xaml;Window1.xaml;
 
-True
+False
 

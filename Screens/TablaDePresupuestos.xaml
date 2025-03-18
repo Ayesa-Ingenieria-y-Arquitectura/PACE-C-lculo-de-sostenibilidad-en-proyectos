@@ -631,6 +631,31 @@
                         <DataGridTextColumn Header="" x:Name="TablaMedidor" Binding="{Binding display}" Width="auto" Visibility="Hidden"/>
                         <DataGridTextColumn Header="Quantity" Binding="{Binding quantity}" Width="auto"/>
                         <DataGridTextColumn Header="Database" x:Name="TablaBaseDatos" Binding="{Binding database}" Width="auto" Visibility="Hidden"/>
+                        <DataGridTemplateColumn Header="Change DB" Width="Auto" Visibility="Hidden" x:Name="ChangeDB">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <Button Content="Change DB"
+                                        Style="{StaticResource ModernButton}"
+                                        Background="#9B59B6"
+                                        Padding="8,3"
+                                        FontSize="12"
+                                        Click="HandleChangeDatabase"
+                                        Visibility="Hidden"
+                                        x:Name="ChangeDBButton">
+                                        <Button.Resources>
+                                            <Style TargetType="Border">
+                                                <Setter Property="CornerRadius" Value="4"/>
+                                            </Style>
+                                        </Button.Resources>
+                                    </Button>
+                                    <DataTemplate.Triggers>
+                                        <DataTrigger Binding="{Binding hijos}" Value="{x:Null}">
+                                            <Setter TargetName="ChangeDBButton" Property="Visibility" Value="Visible"/>
+                                        </DataTrigger>
+                                    </DataTemplate.Triggers>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
                         <DataGridTemplateColumn Header="Options" Width="Auto">
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
@@ -803,6 +828,73 @@
                                 Background="{StaticResource SecondaryColor}"
                                 Padding="15,8"
                                 Click="MakeSplit"/>
+                    </StackPanel>
+                </Grid>
+            </Border>
+        </Popup>
+
+
+        <!-- Popup para selección de base de datos -->
+        <Popup x:Name="DatabaseSelectionPopUp"
+       Visibility="Visible"
+       Placement="Center"
+       IsEnabled="True">
+            <Border Style="{StaticResource Card}"
+            Width="450"
+            Padding="20">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+
+                    <!-- Popup Header -->
+                    <TextBlock Text="Cambiar Base de Datos"
+                       FontSize="18"
+                       FontWeight="SemiBold"
+                       Margin="0,0,0,15"/>
+
+                    <!-- Item Info -->
+                    <StackPanel Grid.Row="1" Margin="0,0,0,15">
+                        <TextBlock x:Name="DbPopupItemId" 
+                           Text="ID: " 
+                           FontWeight="Medium"/>
+                        <TextBlock x:Name="DbPopupItemName" 
+                           Text="Nombre: " 
+                           Margin="0,5,0,0"/>
+                        <TextBlock x:Name="DbPopupCurrentDb" 
+                           Text="Base de datos actual: " 
+                           Margin="0,5,0,0"/>
+                    </StackPanel>
+
+                    <!-- Database Selection -->
+                    <StackPanel Grid.Row="2" Margin="0,0,0,20">
+                        <TextBlock Text="Seleccionar nueva base de datos:"
+                           Margin="0,0,0,10"/>
+                        <ComboBox x:Name="DbPopupSelector"
+                          Width="Auto"
+                          Padding="8,5"/>
+                    </StackPanel>
+
+                    <!-- Popup Buttons -->
+                    <StackPanel Grid.Row="3"
+                        Orientation="Horizontal"
+                        HorizontalAlignment="Right">
+                        <Button x:Name="CancelDbChange"
+                        Content="Cancelar"
+                        Style="{StaticResource ModernButton}"
+                        Background="#95A5A6"
+                        Margin="0,0,10,0"
+                        Padding="15,8"
+                        Click="CloseDbPopup"/>
+                        <Button x:Name="ApplyDbChange"
+                        Content="Aplicar"
+                        Style="{StaticResource ModernButton}"
+                        Background="{StaticResource SecondaryColor}"
+                        Padding="15,8"
+                        Click="ApplyDatabaseChange"/>
                     </StackPanel>
                 </Grid>
             </Border>

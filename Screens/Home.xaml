@@ -163,7 +163,7 @@
             <!-- Card 2: Métricas de Sostenibilidad -->
             <Border Grid.Column="1" Style="{StaticResource FeatureCard}">
                 <StackPanel Margin="25">
-                    <TextBlock Text="🌍 Métricas de Sostenibilidad" 
+                    <TextBlock Text="🌍 Edición de Metricas de Sostenibilidad" 
                                FontSize="20" 
                                FontWeight="SemiBold" 
                                Foreground="{StaticResource DarkTextColor}"/>
@@ -171,14 +171,15 @@
                     <TextBlock TextWrapping="Wrap" 
                                Margin="0,15,0,0" 
                                LineHeight="24">
-                        Visualice indicadores clave como huella de carbono, consumo de agua y uso de energía. Compare con estándares y mejores prácticas.
+                        Edita desde un excel indicadores clave como huella de carbono, consumo de agua y uso de energía. Añade nuevos indicadores  y elementos a medir.
                     </TextBlock>
 
-                    <Button Content="Ver Métricas" 
+                    <Button Content="Editar Métricas" 
                             HorizontalAlignment="Left" 
                             Margin="0,20,0,0"
                             Style="{StaticResource ActionButton}"
                             Background="{StaticResource SecondaryColor}"
+                            Click="EditClick"
                             Padding="15,8"/>
                 </StackPanel>
             </Border>
