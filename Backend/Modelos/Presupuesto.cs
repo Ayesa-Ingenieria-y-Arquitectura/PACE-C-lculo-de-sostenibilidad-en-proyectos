@@ -15,6 +15,24 @@ namespace Bc3_WPF.backend.Modelos
         public double? display { get; set; }
         // Nueva propiedad para la base de datos seleccionada
         public string? database { get; set; }
+        public Presupuesto? Parent { get; set; }
+
+        // Método para establecer las referencias a los padres cuando se carga el árbol
+        public static void SetParentReferences(List<Presupuesto> nodes)
+        {
+            foreach (var node in nodes)
+            {
+                if (node.hijos != null && node.hijos.Count > 0)
+                {
+                    foreach (var child in node.hijos)
+                    {
+                        child.Parent = node;
+                    }
+                    SetParentReferences(node.hijos);
+                }
+            }
+        }
+
 
         public void CalculateValues(string medidor)
         {

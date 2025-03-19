@@ -37,9 +37,6 @@ namespace Bc3_WPF.Backend.Services
                 Console.WriteLine($"Error durante la exportación: {ex.Message}");
                 Console.WriteLine(ex.StackTrace);
             }
-
-            Console.WriteLine("Presiona cualquier tecla para salir...");
-            Console.ReadKey();
         }
 
 
@@ -88,7 +85,6 @@ namespace Bc3_WPF.Backend.Services
 
         private static void ExportSustainabilityValuesTable(XLWorkbook workbook, string ConnectionString)
         {
-            Console.WriteLine("Exportando tabla sustainability_values...");
 
             // Crear hoja de trabajo para sustainability_values
             var worksheet = workbook.Worksheets.Add("SustainabilityValues");
@@ -147,8 +143,6 @@ namespace Bc3_WPF.Backend.Services
                     worksheet.Columns().AdjustToContents();
                 }
             }
-
-            Console.WriteLine("Tabla sustainability_values exportada exitosamente.");
         }
     }
 }
