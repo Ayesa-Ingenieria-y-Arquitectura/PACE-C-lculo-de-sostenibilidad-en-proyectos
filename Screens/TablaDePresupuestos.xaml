@@ -454,7 +454,7 @@
                         </Grid.RowDefinitions>
                         
                         <TextBlock x:Name="ConceptTitle"
-                                   Text="Total Agua"
+                                   Text="Total Categorias distintas"
                                    FontSize="18"
                                    FontWeight="SemiBold"
                                    Foreground="{StaticResource DarkTextColor}"

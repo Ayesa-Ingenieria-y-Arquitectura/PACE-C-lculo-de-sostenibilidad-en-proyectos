@@ -20,7 +20,7 @@ namespace Bc3_WPF.Screens
     {
         #region Private Fields
         private Presupuesto? presupuesto;
-        private List<KeyValuePair<string, List<Presupuesto>>> historial = new();
+        private List<string> historial = new();
         private List<Presupuesto> currentData = new();
         private List<Presupuesto> showing = new();
         private List<KeyValuePair<string, Presupuesto>> previous = new();
@@ -131,9 +131,14 @@ namespace Bc3_WPF.Screens
             treeInfo.Clear();
             treeInfo.Add(presupuesto);
             Tree.ItemsSource = treeInfo;
+            if (Tree.ItemsSource is IEnumerable<Presupuesto> rootNodes)
+            {
+                Presupuesto.SetParentReferences(rootNodes.ToList());
+            }
+
 
             // Show save button if applicable
-            SaveButton.Visibility = previous.Count > 0 ? Visibility.Visible : Visibility.Hidden;
+            SaveButton.Visibility = Visibility.Visible;
 
             // Make sure charts are hidden and table takes full space initially
             ChartSection.Visibility = Visibility.Collapsed;
@@ -177,6 +182,33 @@ namespace Bc3_WPF.Screens
         {
             if (sender is System.Windows.Controls.Button button && button.DataContext is Presupuesto item)
             {
+                // Crear la lista con la ruta completa (padres + nodo actual)
+                List<Presupuesto> currentPath = new List<Presupuesto>();
+
+                // Comenzar con el nodo actual
+                Presupuesto current;
+
+                if(item.hijos == null || item.hijos.Count == 0)
+                {
+                    current = item.Parent ?? null;
+                }
+                else
+                {
+                    current = item;
+                }
+
+                // Recorrer hacia arriba para agregar todos los padres a la lista
+                while (current != null)
+                {
+                    // Insertar al principio para tener el orden correcto (raíz primero)
+                    currentPath.Insert(0, current);
+                    current = current.Parent;
+                }
+                currentPath.Remove(currentPath[0]);
+
+                historial = currentPath.Select(e => e.Id).ToList();
+
+                // Mantener la funcionalidad original
                 if (item.hijos == null || item.hijos.Count == 0)
                 {
                     PrepareAndShowSplitPopup(item);
@@ -193,8 +225,6 @@ namespace Bc3_WPF.Screens
         /// </summary>
         private void NavigateToChildren(Presupuesto item)
         {
-            // Add current data to history
-            historial.Add(new(item.Id, currentData));
 
             // Set current data to item's children plus any previous entries with same parent ID
             currentData = item.hijos.Concat(previous
@@ -202,6 +232,8 @@ namespace Bc3_WPF.Screens
                 .Select(p => p.Value))
                 .OrderBy(p => p.Id)
                 .ToList();
+
+            historial.Add(item.Id);
 
             // Update UI
             makePagination();
@@ -218,17 +250,63 @@ namespace Bc3_WPF.Screens
         {
             if (historial.Count > 0)
             {
-                currentData = historial.Last().Value;
-                historial.RemoveAt(historial.Count - 1);
+                List<Presupuesto> hijos = presupuesto.hijos;
+                Presupuesto p = presupuesto;
+
+                for (int i = 1; i < historial.Count; i++)
+                {
+                    if(i != 0)
+                        p = hijos.Where(e => e.Id == historial[i - 1]).First();
+                    hijos = p.hijos;
+                }
+                currentData = hijos.Concat(previous
+                .Where(a => a.Key == p.Id)
+                .Select(a => a.Value))
+                .OrderBy(a => a.Id)
+                .ToList();
+                if(historial.Count > 0)
+                    historial.RemoveAt(historial.Count - 1);
 
                 makePagination();
                 Tabla.ItemsSource = showing;
-
-                BackButton.Visibility = historial.Count == 0 ? Visibility.Hidden : Visibility.Visible;
             }
         }
 
         #endregion
+
+        private void reloadAfterChange()
+        {
+            List<Presupuesto> hijos = presupuesto.hijos;
+            Presupuesto p = presupuesto;
+
+            foreach (string s in historial)
+            {
+                p = hijos.Where(e => e.Id == s).First();
+                hijos = p.hijos;
+            }
+
+            currentData = hijos.Concat(previous
+                .Where(a => a.Key == p.Id)
+                .Select(a => a.Value))
+                .OrderBy(a => a.Id)
+                .ToList();
+
+            // Update UI
+            makePagination();
+            Tabla.Items.Refresh();
+            Tabla.ItemsSource = showing;
+
+            treeInfo.Clear();
+            treeInfo.Add(presupuesto);
+            Tree.ItemsSource = treeInfo;
+            if (Tree.ItemsSource is IEnumerable<Presupuesto> rootNodes)
+            {
+                Presupuesto.SetParentReferences(rootNodes.ToList());
+            }
+
+            // Show back button if we have history
+            BackButton.Visibility = historial.Count > 0 ? Visibility.Visible : Visibility.Hidden;
+        }
 
         #region Pagination
 
@@ -360,7 +438,7 @@ namespace Bc3_WPF.Screens
         /// </summary>
         private string GetParentId()
         {
-            return historial.Count == 0 ? presupuesto?.Id ?? "" : historial.Last().Key;
+            return historial.Count == 0 ? presupuesto?.Id ?? "" : historial.Last();
         }
 
         /// <summary>
@@ -385,8 +463,8 @@ namespace Bc3_WPF.Screens
         private void ProcessValidSplitData(Presupuesto original, string parentId, List<Presupuesto> splitData)
         {
             previous.Add(new(parentId, original));
-            presupuesto = Romper.change(presupuesto, historial, splitData, original.Id, true);
-            historial.Clear();
+            List<string> h = new List<string>(historial);
+            presupuesto = Romper.change(presupuesto, h, splitData, original.Id, true);
 
             // Update chart data
             Dictionary<string, double?> dict = new();
@@ -404,21 +482,12 @@ namespace Bc3_WPF.Screens
             }
 
             // Update current data
-            currentData = presupuesto?.hijos?
-                .Concat(previous
-                    .Where(p => p.Key == presupuesto.Id)
-                    .Select(p => p.Value))
-                .OrderBy(p => p.Id)
-                .ToList() ?? new();
-
-            // Update UI
-            makePagination();
+            reloadAfterChange();
+            
             updateDoughtChart();
             getMedidores();
-            Tabla.ItemsSource = showing;
             SplitPopUp.IsOpen = false;
             SaveButton.Visibility = Visibility.Visible;
-            BackButton.Visibility = Visibility.Hidden;
         }
 
         /// <summary>
@@ -534,7 +603,7 @@ namespace Bc3_WPF.Screens
             var agua = 0;    // Replace with actual water calculation
 
             Quantity.Text = carbono.ToString();
-            Concepts.Text = agua.ToString();
+            Concepts.Text = presupuestoService.toArray(presupuesto).Select(e => e.category).ToHashSet().Count.ToString();
 
             SetMedidorVisibility(true);
         }
@@ -757,18 +826,7 @@ namespace Bc3_WPF.Screens
         /// </summary>
         private void RefreshDataAndUI()
         {
-            // Actualizar current data
-            currentData = presupuesto?.hijos?
-                .Concat(previous
-                    .Where(p => p.Key == presupuesto.Id)
-                    .Select(p => p.Value))
-                .OrderBy(p => p.Id)
-                .ToList() ?? new();
-
-            makePagination();
-            historial.Clear();
-            Tabla.Items.Refresh(); // Esto fuerza la actualización de las celdas
-            Tabla.ItemsSource = showing;
+            reloadAfterChange();
             updateDoughtChart();
 
             // Actualizar los totales en las tarjetas informativas
@@ -791,9 +849,6 @@ namespace Bc3_WPF.Screens
                     QuantityTitle.Text = $"Total {med}";
                 }
             }
-
-            // Hide back button
-            BackButton.Visibility = Visibility.Hidden;
         }
 
         #endregion
@@ -998,11 +1053,11 @@ namespace Bc3_WPF.Screens
         /// </summary>
         private string FindParentId(string nodeId)
         {
-            foreach (var entry in historial)
+            foreach (string entry in historial)
             {
-                if (entry.Value.Any(p => p.Id == nodeId))
+                if (entry == nodeId)
                 {
-                    return entry.Key;
+                    return entry;
                 }
             }
             return string.Empty;

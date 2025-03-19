@@ -46,7 +46,6 @@ namespace Bc3_WPF.Backend.Services
             }
 
             Console.WriteLine("Presiona cualquier tecla para salir...");
-            Console.ReadKey();
         }
 
         private static void TruncateTables(string ConnectionString)

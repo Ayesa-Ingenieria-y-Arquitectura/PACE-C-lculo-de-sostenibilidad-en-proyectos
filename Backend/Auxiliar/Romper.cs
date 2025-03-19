@@ -12,17 +12,17 @@ namespace Bc3_WPF.Backend.Auxiliar
     {
 
         public static Presupuesto change(Presupuesto original,
-            List<KeyValuePair<string, List<Presupuesto>>> historial,
+            List<string> h1,
             List<Presupuesto> cambios, string Id, Boolean first)
         {
             List<Presupuesto> hijos = original.hijos;
             Presupuesto og;
 
-            if (historial.Count > 0)
+            if (h1.Count > 0)
             {
-                for (int i = 0; i < historial.Count; i++)
+                for (int i = 0; i < h1.Count; i++)
                 {
-                    hijos = hijos.Where(e => e.Id == historial[i].Key).First().hijos;
+                    hijos = hijos.Where(e => e.Id == h1[i]).First().hijos;
                 }
 
                 if (first)
@@ -47,10 +47,10 @@ namespace Bc3_WPF.Backend.Auxiliar
                     hijos[ind] = p;
                 }
 
-                string lastId = historial[historial.Count -1].Key;
+                string lastId = h1[h1.Count -1];
 
-                List<KeyValuePair<string, List<Presupuesto>>> h = historial;
-                h.Remove(historial[historial.Count - 1]);
+                List<string> h = h1;
+                h.Remove(h1[h1.Count - 1]);
 
                 return change(original, h, hijos, lastId, false);
 
