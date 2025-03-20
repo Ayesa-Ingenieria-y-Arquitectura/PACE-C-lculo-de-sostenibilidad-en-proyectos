@@ -509,13 +509,14 @@ namespace Bc3_WPF.Screens
         /// </summary>
         private void SaveButtonClick(object sender, RoutedEventArgs e)
         {
+            Presupuesto pr = Presupuesto.copy(presupuesto);
             using FolderBrowserDialog dialog = new() { Description = "Choose a folder to save the JSON file" };
             if (dialog.ShowDialog() == DialogResult.OK)
             {
                 string filePath = Path.Combine(dialog.SelectedPath, $"{fileName}-modified.json");
                 try
                 {
-                    presupuestoService.saveJson(filePath, presupuesto);
+                    presupuestoService.saveJson(filePath, pr);
                     System.Windows.MessageBox.Show($"File saved as {filePath}", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
                 }
                 catch (Exception ex)
@@ -523,6 +524,7 @@ namespace Bc3_WPF.Screens
                     System.Windows.MessageBox.Show($"Failed to save file: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
                 }
             }
+
         }
 
         #endregion
@@ -540,9 +542,8 @@ namespace Bc3_WPF.Screens
             var data2 = chartNumber
                 .Select(e => new KeyValuePair<string, double?>(e.Key, e.Value.ContainsKey(med) ? e.Value[med] : 0))
                 .ToList();
-
-            var data = presupuestoService.toArray(presupuesto).Where(e => e.hijos == null || e.hijos.Count == 0)
-                .GroupBy(e => e.category).ToDictionary(e => e.Key, e => e.Sum(e => e.display));
+            var data = presupuestoService.toArray(presupuesto).Where(e => (e.hijos == null || e.hijos.Count == 0) && e.category != null)
+                    .GroupBy(e => e.category).ToDictionary(e => e.Key, e => e.Sum(e => e.display ?? 0));
 
             Pie.updateLineChart(data2, chartData);
             Pie.setDoughtData(data, chartData);

@@ -103,7 +103,8 @@
 
                             <Button Content="Comparar Archivos" 
                                     Style="{StaticResource ActionButton}"
-                                    Background="{StaticResource SecondaryColor}"/>
+                                    Background="{StaticResource SecondaryColor}"
+                                    Click="CompareClick"/>
                         </StackPanel>
                     </StackPanel>
 
@@ -203,7 +204,8 @@
                             Margin="0,20,0,0"
                             Style="{StaticResource ActionButton}"
                             Background="{StaticResource AccentColor}"
-                            Padding="15,8"/>
+                            Padding="15,8"
+                            Click="CompareClick"/>
                 </StackPanel>
             </Border>
         </Grid>

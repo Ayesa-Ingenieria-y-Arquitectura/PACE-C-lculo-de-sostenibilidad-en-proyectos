@@ -15,15 +15,22 @@ namespace Bc3_WPF.Screens
 
         private void ExploreFiles_Click(object sender, RoutedEventArgs e)
         {
-            // Buscar la ventana principal
-            Window1 parentWindow = Window.GetWindow(this) as Window1;
+            // Buscar la ventana principal que contiene este UserControl
+            Window mainWindow = Window.GetWindow(this);
 
-            // Llamar al método newFile de la ventana principal
-            if (parentWindow != null)
+            // Crear una instancia del UserControl Databases
+            Bc3_WPF.Screens.TablaDePresupuestos databasesScreen = new Bc3_WPF.Screens.TablaDePresupuestos();
+
+            // Asumiendo que la ventana principal tiene un ContentControl o Frame llamado MainContent
+            // donde se cargan los diferentes UserControls
+            if (mainWindow != null)
             {
-                // Simular un clic en el botón de archivo nuevo en la ventana principal
-                parentWindow.GetType().GetMethod("newFile", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)
-                    ?.Invoke(parentWindow, new object[] { sender, e });
+                // Si estás usando un ContentControl
+                ContentControl contentControl = mainWindow.FindName("MainContent") as ContentControl;
+                if (contentControl != null)
+                {
+                    contentControl.Content = databasesScreen;
+                }
             }
         }
 
@@ -34,6 +41,34 @@ namespace Bc3_WPF.Screens
 
             // Crear una instancia del UserControl Databases
             Bc3_WPF.Screens.Databases databasesScreen = new Bc3_WPF.Screens.Databases();
+
+            // Asumiendo que la ventana principal tiene un ContentControl o Frame llamado MainContent
+            // donde se cargan los diferentes UserControls
+            if (mainWindow != null)
+            {
+                // Si estás usando un ContentControl
+                ContentControl contentControl = mainWindow.FindName("MainContent") as ContentControl;
+                if (contentControl != null)
+                {
+                    contentControl.Content = databasesScreen;
+                }
+
+                // Si estás usando un Frame
+                // Frame mainFrame = mainWindow.FindName("MainFrame") as Frame;
+                // if (mainFrame != null)
+                // {
+                //     mainFrame.Content = databasesScreen;
+                // }
+            }
+        }
+
+        private void CompareClick(object sender, RoutedEventArgs e)
+        {
+            // Buscar la ventana principal que contiene este UserControl
+            Window mainWindow = Window.GetWindow(this);
+
+            // Crear una instancia del UserControl Databases
+            Bc3_WPF.Screens.Comparador databasesScreen = new Bc3_WPF.Screens.Comparador();
 
             // Asumiendo que la ventana principal tiene un ContentControl o Frame llamado MainContent
             // donde se cargan los diferentes UserControls

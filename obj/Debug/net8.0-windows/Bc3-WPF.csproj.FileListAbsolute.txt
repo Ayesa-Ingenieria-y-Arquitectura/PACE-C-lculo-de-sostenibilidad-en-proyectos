@@ -47,8 +47,6 @@ C:\Users\prodriguezsa\source\repos\Bc3-WPF\bin\Debug\net8.0-windows\runtimes\win
 C:\Users\prodriguezsa\source\repos\Bc3-WPF\bin\Debug\net8.0-windows\runtimes\win-x64\native\libSkiaSharp.dll
 C:\Users\prodriguezsa\source\repos\Bc3-WPF\bin\Debug\net8.0-windows\runtimes\win-x86\native\libSkiaSharp.dll
 C:\Users\prodriguezsa\source\repos\Bc3-WPF\obj\Debug\net8.0-windows\GeneratedInternalTypeHelper.g.cs
-C:\Users\prodriguezsa\source\repos\Bc3-WPF\obj\Debug\net8.0-windows\Screens\Comparator.g.cs
-C:\Users\prodriguezsa\source\repos\Bc3-WPF\obj\Debug\net8.0-windows\Screens\Comparator.baml
 C:\Users\prodriguezsa\source\repos\Bc3-WPF\bin\Debug\net8.0-windows\Microsoft.Extensions.DependencyInjection.Abstractions.dll
 C:\Users\prodriguezsa\source\repos\Bc3-WPF\bin\Debug\net8.0-windows\Microsoft.Extensions.Logging.Abstractions.dll
 C:\Users\prodriguezsa\source\repos\Bc3-WPF\bin\Debug\net8.0-windows\Npgsql.dll
@@ -62,3 +60,5 @@ C:\Users\prodriguezsa\source\repos\Bc3-WPF\bin\Debug\net8.0-windows\ExcelNumberF
 C:\Users\prodriguezsa\source\repos\Bc3-WPF\bin\Debug\net8.0-windows\RBush.dll
 C:\Users\prodriguezsa\source\repos\Bc3-WPF\bin\Debug\net8.0-windows\SixLabors.Fonts.dll
 C:\Users\prodriguezsa\source\repos\Bc3-WPF\bin\Debug\net8.0-windows\System.IO.Packaging.dll
+C:\Users\prodriguezsa\source\repos\Bc3-WPF\obj\Debug\net8.0-windows\Screens\Comparador.g.cs
+C:\Users\prodriguezsa\source\repos\Bc3-WPF\obj\Debug\net8.0-windows\Screens\Comparador.baml

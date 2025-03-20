@@ -48,19 +48,9 @@ namespace Bc3_WPF
             */
         }
 
-        private void newFile(object sender, RoutedEventArgs e)
-        {
-            MainContent.Content = new TablaDePresupuestos();
-        }
-
         private void HomeWindows(object sender, RoutedEventArgs e)
         {
             MainContent.Content = new Home();
-        }
-
-        private void CompareFiles(object sender, RoutedEventArgs e)
-        {
-            MainContent.Content = new Comparator();
         }
         #endregion
     }

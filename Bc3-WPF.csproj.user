@@ -8,10 +8,10 @@
     <Compile Update="Screens\TablaDePresupuestos.xaml.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Update="Screens\Comparator.xaml.cs">
+    <Compile Update="Screens\Databases.xaml.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Update="Screens\Databases.xaml.cs">
+    <Compile Update="Screens\Comparador.xaml.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Update="Window1.xaml.cs">
@@ -25,10 +25,10 @@
     <Page Update="Screens\TablaDePresupuestos.xaml">
       <SubType>Designer</SubType>
     </Page>
-    <Page Update="Screens\Comparator.xaml">
+    <Page Update="Screens\Databases.xaml">
       <SubType>Designer</SubType>
     </Page>
-    <Page Update="Screens\Databases.xaml">
+    <Page Update="Screens\Comparador.xaml">
       <SubType>Designer</SubType>
     </Page>
     <Page Update="Window1.xaml">
