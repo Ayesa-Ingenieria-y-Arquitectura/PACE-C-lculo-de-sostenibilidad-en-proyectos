@@ -1,11 +1,11 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 namespace Bc3_WPF.backend.Modelos
 {
-    public class Presupuesto
+    public partial class Presupuesto
     {
-        public required string Id { get; set; }
+        public string? Id { get; set; }
         public string? InternalId { get; set; }
-        public required string name { get; set; }
+        public string? name { get; set; }
         public string? category { get; set; }
         public List<string>? medidores { get; set; }
         public List<Presupuesto>? hijos { get; set; }
@@ -72,6 +72,32 @@ namespace Bc3_WPF.backend.Modelos
             hijos?.ForEach(h => h.NullValues());
             display = 0;
             database = null; // Reiniciar también la base de datos seleccionada
+        }
+
+        public void NullParents()
+        {
+            hijos?.ForEach(h => h.NullParents());
+            Parent = null;
+        }
+
+        public static Presupuesto copy(Presupuesto p)
+        {
+            Presupuesto pr =  new Presupuesto
+            {
+                Id = p.Id,
+                InternalId = p.InternalId,
+                name = p.name,
+                category = p.category,
+                medidores = p.medidores,
+                hijos = p.hijos,
+                quantity = p.quantity,
+                values = p.values,
+                display = p.display,
+                database = p.database
+            };
+            pr.NullParents();
+
+            return pr;
         }
     }
 }

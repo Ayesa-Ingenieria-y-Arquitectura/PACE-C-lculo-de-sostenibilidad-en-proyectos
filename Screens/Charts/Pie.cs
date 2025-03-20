@@ -62,9 +62,9 @@ public class Pie
         };
     }
 
-    public static void setDoughtData(Dictionary<string?, double?>? data, Pie pie)
+    public static void setDoughtData(Dictionary<string?, double>? data, Pie pie)
     {
-        List<double?> values = data.Select(e => e.Value).ToList();
+        List<double> values = data.Select(e => e.Value).ToList();
         List<string> names = data.Select(e => e.Key).ToList();
         int _index = 0;
 

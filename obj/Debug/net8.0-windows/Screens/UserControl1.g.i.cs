@@ -40,7 +40,7 @@ namespace Bc3_WPF.Screens {
     /// <summary>
     /// UserControl1
     /// </summary>
-    public partial class Databases : System.Windows.Controls.UserControl, System.Windows.Markup.IComponentConnector {
+    public partial class Comparador : System.Windows.Controls.UserControl, System.Windows.Markup.IComponentConnector {
         
         private bool _contentLoaded;
         
