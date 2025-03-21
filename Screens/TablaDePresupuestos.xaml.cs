@@ -35,6 +35,7 @@ namespace Bc3_WPF.Screens
         private int rowsPerPage = 20;
         private decimal? pages;
         private string? fileName;
+        private string? path;
         private Pie? chartData;
         private string dbSelected = "";
         private Presupuesto? currentSelectedItem;
@@ -62,9 +63,15 @@ namespace Bc3_WPF.Screens
             {
                 fileName = Path.GetFileNameWithoutExtension(ofd.SafeFileName);
                 string filePath = ofd.FileName;
-                var data = filePath.EndsWith(".bc3")
-                    ? presupuestoService.loadFromBC3(filePath)
-                    : presupuestoService.loadFromJson(filePath);
+                (Presupuesto, HashSet<string>, Dictionary<string, List<string>>) data;
+                if (filePath.EndsWith(".bc3")) {
+                    data = presupuestoService.loadFromBC3(filePath);
+                }
+                else
+                {
+                    data = presupuestoService.loadFromJson(filePath);
+                    path = filePath;
+                }
 
                 presupuesto = data.Item1;
                 medidores = data.Item2.ToList();
@@ -513,7 +520,7 @@ namespace Bc3_WPF.Screens
             using FolderBrowserDialog dialog = new() { Description = "Choose a folder to save the JSON file" };
             if (dialog.ShowDialog() == DialogResult.OK)
             {
-                string filePath = Path.Combine(dialog.SelectedPath, $"{fileName}-modified.json");
+                string filePath = path ?? Path.Combine(dialog.SelectedPath, $"{fileName}-modified.json");
                 try
                 {
                     presupuestoService.saveJson(filePath, pr);
