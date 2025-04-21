@@ -5,7 +5,7 @@ using System.Text.Json;
 
 namespace Bc3_WPF.backend.Auxiliar
 {
-    internal class Parse
+    public class Parse
     {
         public static DateOnly? ParseDate(string date)
         {

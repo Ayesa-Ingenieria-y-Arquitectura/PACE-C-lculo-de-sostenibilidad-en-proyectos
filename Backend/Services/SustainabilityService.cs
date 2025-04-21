@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using Bc3_WPF.Backend.Modelos;
+﻿using Bc3_WPF.Backend.Modelos;
 using Npgsql;
 
 namespace Bc3_WPF.Backend.Services

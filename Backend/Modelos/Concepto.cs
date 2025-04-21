@@ -25,15 +25,6 @@
                 $" precio:{precio}, fecha:{fecha}, medidor:{medidor}";
         }
 
-        public Concepto(string Id, string medidor, string name, float precio, DateOnly? fecha)
-        {
-            this.Id = Id;
-            this.medidor = medidor;
-            this.name = name;
-            this.precio = precio;
-            this.fecha = fecha;
-        }
-
         public static bool searchConcepto(List<Concepto> conceptos, string id)
         {
             bool res = true;

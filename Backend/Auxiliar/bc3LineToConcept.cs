@@ -18,8 +18,14 @@ namespace Bc3_WPF.backend.Auxiliar
                 if (atributos[3] != "")
                     precio = float.Parse(atributos[3], CultureInfo.InvariantCulture.NumberFormat);
                 DateOnly? fecha = Parse.ParseDate(atributos[4]);
-                Concepto concepto = new Concepto(atributos[0],
-                    atributos[1], atributos[2], precio, fecha);
+                Concepto concepto = new Concepto
+                {
+                    Id = atributos[0],
+                    medidor = atributos[1],
+                    name = atributos[2],
+                    precio = precio,
+                    fecha = fecha
+                };
 
                 res.Add(concepto);
             }

@@ -6,13 +6,14 @@ using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Forms; // Para FolderBrowserDialog
+using System.Windows.Media;
+using System.Windows.Input;
 using Bc3_WPF.backend.Modelos;
 using Bc3_WPF.backend.Services;
 using Bc3_WPF.Backend.Auxiliar;
 using Bc3_WPF.Backend.Modelos;
 using Bc3_WPF.Backend.Services;
-using Bc3_WPF.Screens.Charts;
-using LiveChartsCore.SkiaSharpView.WPF;
+using Button = System.Windows.Controls.Button;
 
 namespace Bc3_WPF.Screens
 {
@@ -25,25 +26,33 @@ namespace Bc3_WPF.Screens
         private List<Presupuesto> showing = new();
         private List<KeyValuePair<string, Presupuesto>> previous = new();
         private List<KeyValuePair<string, List<KeyValuePair<string, decimal>>>> changes = new();
-        private List<string> dbs = new();
         private ObservableCollection<Presupuesto> treeInfo = new();
         private Dictionary<string, List<string>> idArray = new();
         private List<string> medidores = new();
-        private List<KeyValuePair<string, Dictionary<string, double?>>> chartNumber = new();
         private string med = "";
         private int pageNumber = 1;
         private int rowsPerPage = 20;
         private decimal? pages;
         private string? fileName;
         private string? path;
-        private Pie? chartData;
-        private string dbSelected = "";
+        private string dbSelected = "DB1";
         private Presupuesto? currentSelectedItem;
+
+        // Campos para la funcionalidad de búsqueda
+        private List<Presupuesto> _filteredData = new();
+        private string _lastSearchText = string.Empty;
+
+        // Nuevo campo para almacenar los términos de búsqueda activos
+        private HashSet<string> _searchTerms = new HashSet<string>();
         #endregion
 
         public TablaDePresupuestos()
         {
             InitializeComponent();
+
+            // Inicializar campos
+            _searchTerms = new HashSet<string>();
+            _filteredData = new List<Presupuesto>();
         }
 
         #region File Loading & UI Setup
@@ -61,10 +70,14 @@ namespace Bc3_WPF.Screens
 
             if (ofd.ShowDialog() == true)
             {
+                // Resetear búsquedas y filtros
+                ResetSearch();
+
                 fileName = Path.GetFileNameWithoutExtension(ofd.SafeFileName);
                 string filePath = ofd.FileName;
                 (Presupuesto, HashSet<string>, Dictionary<string, List<string>>) data;
-                if (filePath.EndsWith(".bc3")) {
+                if (filePath.EndsWith(".bc3"))
+                {
                     data = presupuestoService.loadFromBC3(filePath);
                 }
                 else
@@ -80,23 +93,15 @@ namespace Bc3_WPF.Screens
                 medidores.Insert(0, "N/A");
 
                 currentData = presupuesto?.hijos ?? new();
-                chartData = new Pie();
+                _filteredData = new List<Presupuesto>(currentData); // Inicializar datos filtrados
 
                 // Initialize UI components with data
                 makePagination();
                 SetupUI();
-                updateDoughtChart();
                 getMedidores();
 
-                // Initialize chart data
-                Dictionary<string, double?> dict = new();
-                foreach (string s in medidores)
-                {
-                    presupuesto.CalculateValues(s);
-                    dict[s] = presupuesto.hijos.Select(e => e.display).Sum();
-                }
-
-                chartNumber.Add(new KeyValuePair<string, Dictionary<string, double?>>("Initial", dict));
+                // Ocultar información de filtro al cargar nuevo archivo
+                FilterInfoBorder.Visibility = Visibility.Collapsed;
             }
         }
 
@@ -108,12 +113,6 @@ namespace Bc3_WPF.Screens
             // Update text elements
             Titulo.Text = $" File: {fileName}";
             TitleTable.Text = presupuesto?.name;
-
-            if (chartData != null)
-            {
-                Chart.Title = chartData.TitleChart;
-                PieChart.Title = chartData.TitlePie;
-            }
 
             // Update visibility of UI components
             RectangleInfo.Visibility = Visibility.Visible;
@@ -127,13 +126,6 @@ namespace Bc3_WPF.Screens
             Tabla.ItemsSource = showing;
             SelectMedidor.ItemsSource = medidores;
 
-            LoadDatabases();
-
-            // Set data sources
-            SelectBaseDatos.ItemsSource = dbs;
-            Tabla.ItemsSource = showing;
-            SelectMedidor.ItemsSource = medidores;
-
             // Setup tree
             treeInfo.Clear();
             treeInfo.Add(presupuesto);
@@ -143,28 +135,12 @@ namespace Bc3_WPF.Screens
                 Presupuesto.SetParentReferences(rootNodes.ToList());
             }
 
-
             // Show save button if applicable
             SaveButton.Visibility = Visibility.Visible;
 
             // Make sure charts are hidden and table takes full space initially
-            ChartSection.Visibility = Visibility.Collapsed;
             Grid.SetRow(TableSection, 2);
             Grid.SetRowSpan(TableSection, 2);
-            ToggleGraphs.Content = "Show Graphs";
-        }
-
-        /// <summary>
-        /// Carga las bases de datos disponibles desde SustainabilityService
-        /// </summary>
-        private void LoadDatabases()
-        {
-            // Obtener las bases de datos desde SustainabilityService
-            var sustainabilityRecords = SustainabilityService.getFromDatabase();
-            dbs = SustainabilityService.getDatabases(sustainabilityRecords).ToList();
-
-            // Añadir opción "N/A" al inicio
-            dbs.Insert(0, "N/A");
         }
 
         #endregion
@@ -195,7 +171,7 @@ namespace Bc3_WPF.Screens
                 // Comenzar con el nodo actual
                 Presupuesto current;
 
-                if(item.hijos == null || item.hijos.Count == 0)
+                if (item.hijos == null || item.hijos.Count == 0)
                 {
                     current = item.Parent ?? null;
                 }
@@ -232,7 +208,6 @@ namespace Bc3_WPF.Screens
         /// </summary>
         private void NavigateToChildren(Presupuesto item)
         {
-
             // Set current data to item's children plus any previous entries with same parent ID
             currentData = item.hijos.Concat(previous
                 .Where(p => p.Key == item.Id)
@@ -242,8 +217,9 @@ namespace Bc3_WPF.Screens
 
             historial.Add(item.Id);
 
-            // Update UI
-            makePagination();
+            // Mantener los términos de búsqueda existentes y volver a aplicar el filtro
+            ApplySearchFilter();
+
             Tabla.ItemsSource = showing;
 
             // Show back button if we have history
@@ -262,7 +238,7 @@ namespace Bc3_WPF.Screens
 
                 for (int i = 1; i < historial.Count; i++)
                 {
-                    if(i != 0)
+                    if (i != 0)
                         p = hijos.Where(e => e.Id == historial[i - 1]).First();
                     hijos = p.hijos;
                 }
@@ -271,16 +247,22 @@ namespace Bc3_WPF.Screens
                 .Select(a => a.Value))
                 .OrderBy(a => a.Id)
                 .ToList();
-                if(historial.Count > 0)
+                if (historial.Count > 0)
                     historial.RemoveAt(historial.Count - 1);
 
-                makePagination();
+                // Mantener los términos de búsqueda existentes y volver a aplicar el filtro
+                ApplySearchFilter();
+
                 Tabla.ItemsSource = showing;
+
+                // Actualizar visibilidad del botón de regreso
+                BackButton.Visibility = historial.Count > 0 ? Visibility.Visible : Visibility.Hidden;
             }
         }
 
-        #endregion
-
+        /// <summary>
+        /// Recarga los datos después de un cambio
+        /// </summary>
         private void reloadAfterChange()
         {
             List<Presupuesto> hijos = presupuesto.hijos;
@@ -298,8 +280,9 @@ namespace Bc3_WPF.Screens
                 .OrderBy(a => a.Id)
                 .ToList();
 
-            // Update UI
-            makePagination();
+            // Volver a aplicar el filtro actual con los términos de búsqueda existentes
+            ApplySearchFilter();
+
             Tabla.Items.Refresh();
             Tabla.ItemsSource = showing;
 
@@ -315,6 +298,8 @@ namespace Bc3_WPF.Screens
             BackButton.Visibility = historial.Count > 0 ? Visibility.Visible : Visibility.Hidden;
         }
 
+        #endregion
+
         #region Pagination
 
         /// <summary>
@@ -324,7 +309,11 @@ namespace Bc3_WPF.Screens
         {
             pageNumber += step;
             int lowerBound = (pageNumber - 1) * rowsPerPage;
-            showing = currentData.Skip(lowerBound).Take(rowsPerPage).ToList();
+
+            // Usar los datos filtrados si hay un filtro activo
+            List<Presupuesto> dataToUse = HasActiveSearchTerms() ? _filteredData : currentData;
+
+            showing = dataToUse.Skip(lowerBound).Take(rowsPerPage).ToList();
             Tabla.ItemsSource = showing;
             PageNumber.Text = $"Page {pageNumber} of {pages}";
         }
@@ -350,16 +339,27 @@ namespace Bc3_WPF.Screens
         /// </summary>
         private void makePagination()
         {
-            pages = Math.Ceiling((decimal)currentData.Count / rowsPerPage);
+            // Si hay un texto de búsqueda activo, usar los datos filtrados
+            List<Presupuesto> dataToUse = HasActiveSearchTerms() ? _filteredData : currentData;
+
+            pages = Math.Ceiling((decimal)dataToUse.Count / rowsPerPage);
             pageNumber = 1;
-            showing = currentData.Take(rowsPerPage).ToList();
+            showing = dataToUse.Take(rowsPerPage).ToList();
 
             // Update visibility of pagination controls
-            Next.Visibility = pages > 1 ? Visibility.Visible : Visibility.Hidden;
-            Previous.Visibility = pages > 1 ? Visibility.Visible : Visibility.Hidden;
-            PageNumber.Visibility = pages > 1 ? Visibility.Visible : Visibility.Hidden;
-            PageNumber.Text = $"Page {pageNumber} of {pages}";
+            UpdatePaginationControls();
+        }
 
+        /// <summary>
+        /// Actualiza los controles de paginación según el número de páginas
+        /// </summary>
+        private void UpdatePaginationControls()
+        {
+            bool hasMultiplePages = pages > 1;
+            Next.Visibility = hasMultiplePages ? Visibility.Visible : Visibility.Hidden;
+            Previous.Visibility = hasMultiplePages ? Visibility.Visible : Visibility.Hidden;
+            PageNumber.Visibility = hasMultiplePages ? Visibility.Visible : Visibility.Hidden;
+            PageNumber.Text = $"Page {pageNumber} of {pages}";
         }
 
         #endregion
@@ -417,6 +417,9 @@ namespace Bc3_WPF.Screens
                 if (IsValidSplitData(original, splitData))
                 {
                     ProcessValidSplitData(original, parentId, splitData);
+
+                    // Mantener la búsqueda después de dividir
+                    ApplySearchFilter();
                 }
                 else
                 {
@@ -473,16 +476,6 @@ namespace Bc3_WPF.Screens
             List<string> h = new List<string>(historial);
             presupuesto = Romper.change(presupuesto, h, splitData, original.Id, true);
 
-            // Update chart data
-            Dictionary<string, double?> dict = new();
-            foreach (string s in medidores)
-            {
-                presupuesto.CalculateValues(s);
-                dict[s] = presupuesto.display;
-            }
-
-            chartNumber.Add(new KeyValuePair<string, Dictionary<string, double?>>("change " + original.Id, dict));
-
             if (med != "" && med != "N/A")
             {
                 presupuesto.CalculateValues(med);
@@ -490,8 +483,7 @@ namespace Bc3_WPF.Screens
 
             // Update current data
             reloadAfterChange();
-            
-            updateDoughtChart();
+
             getMedidores();
             SplitPopUp.IsOpen = false;
             SaveButton.Visibility = Visibility.Visible;
@@ -517,84 +509,29 @@ namespace Bc3_WPF.Screens
         private void SaveButtonClick(object sender, RoutedEventArgs e)
         {
             Presupuesto pr = Presupuesto.copy(presupuesto);
-            using FolderBrowserDialog dialog = new() { Description = "Choose a folder to save the JSON file" };
-            if (dialog.ShowDialog() == DialogResult.OK)
+
+            // Usar SaveFileDialog en lugar de FolderBrowserDialog
+            using SaveFileDialog saveDialog = new()
             {
-                string filePath = path ?? Path.Combine(dialog.SelectedPath, $"{fileName}-modified.json");
+                Title = "Guardar archivo JSON",
+                Filter = "JSON files (*.json)|*.json",
+                DefaultExt = "json",
+                FileName = $"{fileName}-modified.json" // Nombre predeterminado
+            };
+
+            if (saveDialog.ShowDialog() == DialogResult.OK)
+            {
+                string filePath = saveDialog.FileName;
                 try
                 {
                     presupuestoService.saveJson(filePath, pr);
-                    System.Windows.MessageBox.Show($"File saved as {filePath}", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
+                    System.Windows.MessageBox.Show($"Archivo guardado como {filePath}", "Éxito", MessageBoxButton.OK, MessageBoxImage.Information);
                 }
                 catch (Exception ex)
                 {
-                    System.Windows.MessageBox.Show($"Failed to save file: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                    System.Windows.MessageBox.Show($"Error al guardar el archivo: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
                 }
             }
-
-        }
-
-        #endregion
-
-        #region Charting
-
-        /// <summary>
-        /// Updates the chart data and display
-        /// </summary>
-        private void updateDoughtChart()
-        {
-            if (chartData == null)
-                return;
-
-            var data2 = chartNumber
-                .Select(e => new KeyValuePair<string, double?>(e.Key, e.Value.ContainsKey(med) ? e.Value[med] : 0))
-                .ToList();
-            var data = presupuestoService.toArray(presupuesto).Where(e => (e.hijos == null || e.hijos.Count == 0) && e.category != null)
-                    .GroupBy(e => e.category).ToDictionary(e => e.Key, e => e.Sum(e => e.display ?? 0));
-
-            Pie.updateLineChart(data2, chartData);
-            Pie.setDoughtData(data, chartData);
-            Pie.setChartTitle("Evolución de " + med, chartData);
-            Pie.setDoughtTitle(med + " por Categoría", chartData);
-
-            // Update chart controls
-            PieChart.Series = chartData.Series;
-            Chart.Series = chartData.Series2;
-            Chart.XAxes = chartData.axes;
-        }
-
-        /// <summary>
-        /// Toggles visibility of charts section
-        /// </summary>
-        private void ShowGraphs(object sender, RoutedEventArgs e)
-        {
-            bool isChartsVisible = ChartSection.Visibility == Visibility.Visible;
-            ToggleGraphVisibility(!isChartsVisible);
-        }
-
-        /// <summary>
-        /// Shows or hides the graphs section
-        /// </summary>
-        private void ToggleGraphVisibility(bool showGraphs)
-        {
-            // Adjust rows per page based on charts visibility
-            rowsPerPage = showGraphs ? 5 : 20;
-
-            // Set table section position and row span
-            Grid.SetRow(TableSection, showGraphs ? 3 : 2);
-            Grid.SetRowSpan(TableSection, showGraphs ? 1 : 2);
-
-            // Update pagination
-            makePagination();
-
-            // Set charts visibility
-            ChartSection.Visibility = showGraphs ? Visibility.Visible : Visibility.Hidden;
-
-            // Update button text
-            ToggleGraphs.Content = showGraphs ? "Hide Graphs" : "Show Graphs";
-
-            // Refresh table
-            Tabla.ItemsSource = showing;
         }
 
         #endregion
@@ -656,50 +593,6 @@ namespace Bc3_WPF.Screens
         #region Medidor and BaseDatos Selection
 
         /// <summary>
-        /// Handles change in base de datos selection
-        /// </summary>
-        private void handleChangeBaseDatos(object sender, SelectionChangedEventArgs e)
-        {
-            if (SelectBaseDatos?.SelectedItem == null || presupuesto == null)
-                return;
-
-            string selectedContent = SelectBaseDatos.SelectedItem.ToString();
-
-            if (selectedContent != null && selectedContent != "N/A")
-            {
-                // Guardar la base de datos seleccionada
-                dbSelected = selectedContent;
-
-                // Mostrar la columna de base de datos
-                TablaBaseDatos.Visibility = Visibility.Visible;
-                ChangeDB.Visibility = Visibility.Visible;
-
-                // Actualizar los valores si ya hay un medidor seleccionado
-                if (med != "" && med != "N/A")
-                {
-                    UpdateValuesWithDatabaseAndMedidor();
-                }
-            }
-            else
-            {
-                // Reset valores de base de datos
-                dbSelected = "";
-                TablaBaseDatos.Visibility = Visibility.Hidden;
-                ChangeDB.Visibility = Visibility.Hidden;
-
-                // Si hay un medidor seleccionado, usar el método original
-                if (med != "" && med != "N/A")
-                {
-                    presupuesto.NullValues();
-                    presupuesto.CalculateValues(med);
-                }
-            }
-
-            // Actualizar datos y UI
-            RefreshDataAndUI();
-        }
-
-        /// <summary>
         /// Maneja el cambio de selección de medidor
         /// </summary>
         private void handleChangeMedidor(object sender, SelectionChangedEventArgs e)
@@ -740,6 +633,9 @@ namespace Bc3_WPF.Screens
 
             // Actualizar datos y UI
             RefreshDataAndUI();
+
+            // Mantener los términos de búsqueda existentes y volver a aplicar el filtro
+            ApplySearchFilter();
         }
 
         /// <summary>
@@ -835,7 +731,6 @@ namespace Bc3_WPF.Screens
         private void RefreshDataAndUI()
         {
             reloadAfterChange();
-            updateDoughtChart();
 
             // Actualizar los totales en las tarjetas informativas
             if (med != "" && med != "N/A")
@@ -861,198 +756,435 @@ namespace Bc3_WPF.Screens
 
         #endregion
 
-        #region Change One Database
+        #region Search Functionality
 
         /// <summary>
-        /// Maneja el evento de clic en el botón de cambio de base de datos
+        /// Maneja los cambios en el texto del cuadro de búsqueda
         /// </summary>
-        private void HandleChangeDatabase(object sender, RoutedEventArgs e)
+        private void HandleSearchTextChanged(object sender, TextChangedEventArgs e)
         {
-            if (sender is System.Windows.Controls.Button button && button.DataContext is Presupuesto item)
-            {
-                // Solo proceder si hay un medidor seleccionado
-                if (string.IsNullOrEmpty(med) || med == "N/A")
-                {
-                    System.Windows.MessageBox.Show("Debe seleccionar un medidor primero", "Aviso", MessageBoxButton.OK, MessageBoxImage.Information);
-                    return;
-                }
+            // Obtener el texto de búsqueda actual
+            string currentSearch = SearchBox.Text.ToLower().Trim();
 
-                // Mostrar el popup para seleccionar la base de datos
-                ShowDatabaseSelectionPopup(item);
+            // Mostrar/ocultar el botón de limpieza
+            ClearSearchButton.Visibility = string.IsNullOrEmpty(currentSearch) ? Visibility.Collapsed : Visibility.Visible;
+
+            // Si hay un cambio en el texto de búsqueda
+            if (currentSearch != _lastSearchText)
+            {
+                _lastSearchText = currentSearch;
+
+                // Aplicar el filtro con el texto actual y los términos guardados
+                ApplySearchFilter();
             }
         }
 
         /// <summary>
-        /// Muestra el popup para seleccionar la base de datos
+        /// Maneja el evento KeyDown en el cuadro de búsqueda
         /// </summary>
-        private void ShowDatabaseSelectionPopup(Presupuesto item)
+        private void SearchBox_KeyDown(object sender, System.Windows.Input.KeyEventArgs e)
         {
-            currentSelectedItem = item;
-
-            // Configurar la información del item
-            DbPopupItemId.Text = $"ID: {item.Id}";
-            DbPopupItemName.Text = $"Nombre: {item.name}";
-            DbPopupCurrentDb.Text = $"Base de datos actual: {(string.IsNullOrEmpty(item.database) ? "No asignada" : item.database)}";
-
-            // Llenar el combo con las bases de datos disponibles, excluyendo la actual
-            var availableDbs = dbs.Where(db => db != "N/A" && db != item.database).ToList();
-            DbPopupSelector.ItemsSource = availableDbs;
-
-            if (availableDbs.Any())
+            if (e.Key == Key.Enter && !string.IsNullOrWhiteSpace(SearchBox.Text))
             {
-                DbPopupSelector.SelectedIndex = 0;
-                DbPopupSelector.IsEnabled = true;
-                ApplyDbChange.IsEnabled = true;
+                AddCurrentSearchTerm();
+                e.Handled = true;
+            }
+        }
+
+        /// <summary>
+        /// Maneja el clic en el botón de añadir término
+        /// </summary>
+        private void AddSearchTerm_Click(object sender, RoutedEventArgs e)
+        {
+            AddCurrentSearchTerm();
+        }
+
+        /// <summary>
+        /// Añade el término actual a la lista de términos de búsqueda
+        /// </summary>
+        private void AddCurrentSearchTerm()
+        {
+            string term = SearchBox.Text.Trim().ToLower();
+            if (!string.IsNullOrEmpty(term) && !_searchTerms.Contains(term))
+            {
+                _searchTerms.Add(term);
+                UpdateSearchTermsDisplay();
+
+                // Limpiar el cuadro de búsqueda
+                SearchBox.Text = string.Empty;
+                _lastSearchText = string.Empty;
+
+                // Aplicar el filtro actualizado
+                ApplySearchFilter();
+            }
+        }
+
+        /// <summary>
+        /// Crea un elemento visual para representar un término de búsqueda
+        /// </summary>
+        private UIElement CreateSearchTermTag(string term)
+        {
+            // Crear un borde con el estilo definido
+            Border border = new Border
+            {
+                Style = FindResource("SearchTermTag") as Style
+            };
+
+            // Crear un grid para contener el texto y el botón de cerrar
+            Grid grid = new Grid();
+            grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+            grid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+
+            // Texto del término
+            TextBlock textBlock = new TextBlock
+            {
+                Text = term,
+                Margin = new Thickness(0, 0, 5, 0),
+                VerticalAlignment = VerticalAlignment.Center,
+                Foreground = FindResource("DarkTextColor") as SolidColorBrush
+            };
+            Grid.SetColumn(textBlock, 0);
+
+            // Botón para quitar el término
+            Button closeButton = new Button
+            {
+                Content = "✕",
+                Style = FindResource("TagRemoveButton") as Style,
+                Tag = term // Guardar el término para identificarlo
+            };
+            closeButton.Click += RemoveSearchTerm_Click;
+            Grid.SetColumn(closeButton, 1);
+
+            // Añadir elementos al grid
+            grid.Children.Add(textBlock);
+            grid.Children.Add(closeButton);
+
+            // Establecer el contenido del borde
+            border.Child = grid;
+
+            return border;
+        }
+
+        /// <summary>
+        /// Maneja la eliminación de un término de búsqueda
+        /// </summary>
+        private void RemoveSearchTerm_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is Button button && button.Tag is string term)
+            {
+                _searchTerms.Remove(term);
+                UpdateSearchTermsDisplay();
+
+                // Aplicar el filtro con los términos restantes
+                ApplySearchFilter();
+            }
+        }
+
+        /// <summary>
+        /// Actualiza la visualización de los términos de búsqueda
+        /// </summary>
+        private void UpdateSearchTermsDisplay()
+        {
+            // Limpiar el panel
+            SearchTermsPanel.Children.Clear();
+
+            // Si no hay términos, ocultar el panel
+            if (_searchTerms.Count == 0)
+            {
+                SearchTermsPanel.Visibility = Visibility.Collapsed;
+                return;
+            }
+
+            // Mostrar el panel
+            SearchTermsPanel.Visibility = Visibility.Visible;
+
+            // Añadir una etiqueta para cada término
+            foreach (string term in _searchTerms)
+            {
+                SearchTermsPanel.Children.Add(CreateSearchTermTag(term));
+            }
+
+            // Añadir un botón "Limpiar todos" al final si hay múltiples términos
+            if (_searchTerms.Count > 1)
+            {
+                Button clearAllButton = new Button
+                {
+                    Content = "Limpiar todos",
+                    Style = FindResource("ModernButton") as Style,
+                    Background = new SolidColorBrush((System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString("#95A5A6")),
+                    Padding = new Thickness(8, 4, 8, 4),
+                    Margin = new Thickness(5, 0, 0, 5),
+                    FontSize = 12
+                };
+                clearAllButton.Click += (s, e) => {
+                    _searchTerms.Clear();
+                    UpdateSearchTermsDisplay();
+                    ApplySearchFilter();
+                };
+                SearchTermsPanel.Children.Add(clearAllButton);
+            }
+        }
+
+        /// <summary>
+        /// Aplica el filtro con todos los términos de búsqueda activos
+        /// </summary>
+        private void ApplySearchFilter()
+        {
+            // Si no hay datos, no hacer nada
+            if (currentData == null || currentData.Count == 0)
+                return;
+
+            // Si no hay términos de búsqueda activos ni texto actual, restaurar datos originales
+            if (_searchTerms.Count == 0 && string.IsNullOrEmpty(_lastSearchText))
+            {
+                _filteredData = new List<Presupuesto>(currentData);
             }
             else
             {
-                DbPopupSelector.IsEnabled = false;
-                ApplyDbChange.IsEnabled = false;
-            }
+                // Colección completa de términos de búsqueda
+                HashSet<string> allTerms = new HashSet<string>(_searchTerms);
 
-            // Mostrar el popup
-            DatabaseSelectionPopUp.IsOpen = true;
-        }
-
-        /// <summary>
-        /// Cierra el popup de selección de base de datos
-        /// </summary>
-        private void CloseDbPopup(object sender, RoutedEventArgs e)
-        {
-            DatabaseSelectionPopUp.IsOpen = false;
-            currentSelectedItem = null;
-        }
-
-        /// <summary>
-        /// Aplica el cambio de base de datos y actualiza los valores
-        /// </summary>
-        private void ApplyDatabaseChange(object sender, RoutedEventArgs e)
-        {
-            DatabaseSelectionPopUp.IsOpen = false;
-            if (currentSelectedItem == null || DbPopupSelector.SelectedItem == null)
-            {
-                DatabaseSelectionPopUp.IsOpen = false;
-                return;
-            }
-
-            string newDatabase = DbPopupSelector.SelectedItem.ToString();
-
-            // Llamar al método que cambia la base de datos y actualiza valores
-            ChangeDatabaseForItem(currentSelectedItem, newDatabase);
-
-            // Cerrar el popup
-            DatabaseSelectionPopUp.IsOpen = false;
-            currentSelectedItem = null;
-        }
-
-        /// <summary>
-        /// Cambia la base de datos para un presupuesto específico y actualiza los valores
-        /// </summary>
-        private void ChangeDatabaseForItem(Presupuesto item, string newDatabase)
-        {
-            if (item == null || string.IsNullOrEmpty(newDatabase) || newDatabase == "N/A")
-                return;
-
-            // Guardar el valor original para calcular la diferencia después
-            double? originalValue = item.display;
-
-            // Obtener registros de sostenibilidad
-            var sustainabilityRecords = SustainabilityService.getFromDatabase();
-
-            // Filtrar por la nueva base de datos y el medidor actual
-            var filteredRecords = sustainabilityRecords
-                .Where(sr => sr.Database == newDatabase && sr.Indicator == med)
-                .ToList();
-
-            // Obtener relaciones de código
-            var codeRelations = SustainabilityService.getCodeRelation(sustainabilityRecords);
-
-            // Buscar el ID interno correspondiente
-            var relation = codeRelations.FirstOrDefault(cr => cr.Key == item.Id);
-
-            if (!string.IsNullOrEmpty(relation.Value))
-            {
-                // Buscar el registro correspondiente en la nueva base de datos
-                var record = filteredRecords.FirstOrDefault(r => r.InternalId == relation.Value);
-
-                if (record != null)
+                // Añadir el texto actual si no está vacío
+                if (!string.IsNullOrEmpty(_lastSearchText))
                 {
-                    // Actualizar la base de datos y el valor
-                    item.database = newDatabase;
-                    item.display = Math.Round(record.Value * (item.quantity ?? 0), 1);
-
-                    // Calcular la diferencia para propagarla
-                    double valueDifference = (item.display ?? 0) - (originalValue ?? 0);
-
-                    // Propagar el cambio hacia arriba en la jerarquía
-                    PropagateChangeUpwards(presupuesto, item.Id, valueDifference);
-
-                    // Crear un registro del cambio para los gráficos
-                    Dictionary<string, double?> dict = new Dictionary<string, double?>();
-                    foreach (string s in medidores)
-                    {
-                        dict[s] = s == med ? presupuesto.display : 0;
-                    }
-                    chartNumber.Add(new KeyValuePair<string, Dictionary<string, double?>>("DB change " + item.Id, dict));
-
-                    DatabaseSelectionPopUp.IsOpen = false;
-                    // Actualizar la UI
-                    RefreshDataAndUI();
-                  
-
-                    System.Windows.MessageBox.Show($"Base de datos cambiada a {newDatabase} para el concepto {item.Id}",
-                        "Cambio aplicado", MessageBoxButton.OK, MessageBoxImage.Information);
+                    allTerms.Add(_lastSearchText);
                 }
-                else
+
+                // Filtrar los elementos que coincidan con AL MENOS UNO de los términos (OR lógico)
+                _filteredData = currentData.Where(item =>
+                    // Es un nodo hoja y su Id o su nombre o su categoría coincide con algún término
+                    ((item.hijos == null || item.hijos.Count == 0) &&
+                        (item.Id != null && allTerms.Any(term => item.Id.ToLower().Contains(term)) ||
+                        item.name != null && allTerms.Any(term => item.name.ToLower().Contains(term)) ||
+                        item.category != null && allTerms.Any(term => item.category.ToLower().Contains(term)))) ||
+                    // O tiene hijos y alguno de sus descendientes coincide con algún término
+                    (item.hijos != null &&
+                        item.hijos.Count > 0 &&
+                        HasMatchingDescendant(item, allTerms))
+                ).ToList();
+            }
+
+            // Actualizar paginación con los datos filtrados
+            UpdatePaginationWithFilteredData();
+
+            // Actualizar la visualización de información de filtro
+            UpdateFilterInfoDisplay();
+        }
+
+        /// <summary>
+        /// Verifica si un nodo tiene algún descendiente que coincida con alguno de los términos
+        /// </summary>
+        private bool HasMatchingDescendant(Presupuesto node, HashSet<string> searchTerms)
+        {
+            // Si es un nodo hoja, comprobar si coincide con algún término
+            if (node.hijos == null || node.hijos.Count == 0)
+            {
+                return (node.Id != null && searchTerms.Any(term => node.Id.ToLower().Contains(term))) ||
+                       (node.name != null && searchTerms.Any(term => node.name.ToLower().Contains(term))) ||
+                       (node.category != null && searchTerms.Any(term => node.category.ToLower().Contains(term)));
+            }
+
+            // Comprobar si algún hijo directo es un nodo hoja que coincide
+            bool hasMatchingLeafChild = node.hijos.Any(child =>
+                (child.hijos == null || child.hijos.Count == 0) &&
+                ((child.Id != null && searchTerms.Any(term => child.Id.ToLower().Contains(term))) ||
+                 (child.name != null && searchTerms.Any(term => child.name.ToLower().Contains(term))) ||
+                 (child.category != null && searchTerms.Any(term => child.category.ToLower().Contains(term))))
+            );
+
+            if (hasMatchingLeafChild)
+            {
+                return true;
+            }
+
+            // Comprobar recursivamente en los hijos
+            return node.hijos.Any(child => HasMatchingDescendant(child, searchTerms));
+        }
+
+        /// <summary>
+        /// Limpia todos los filtros de búsqueda
+        /// </summary>
+        private void ClearAllFilters_Click(object sender, RoutedEventArgs e)
+        {
+            // Limpiar el texto de búsqueda actual
+            SearchBox.Text = string.Empty;
+            _lastSearchText = string.Empty;
+
+            // Limpiar todos los términos guardados
+            _searchTerms.Clear();
+
+            // Actualizar visualización de términos
+            UpdateSearchTermsDisplay();
+
+            // Restaurar los datos originales
+            _filteredData = new List<Presupuesto>(currentData);
+            UpdatePaginationWithFilteredData();
+
+            // Actualizar información de filtro
+            UpdateFilterInfoDisplay();
+        }
+
+        /// <summary>
+        /// Limpia el texto de búsqueda actual
+        /// </summary>
+        private void ClearSearchText(object sender, RoutedEventArgs e)
+        {
+            // Limpiar el texto actual
+            SearchBox.Text = string.Empty;
+            _lastSearchText = string.Empty;
+
+            // Aplicar el filtro (puede haber términos activos todavía)
+            ApplySearchFilter();
+        }
+
+        /// <summary>
+        /// Reinicia la búsqueda completamente, limpiando todos los términos
+        /// </summary>
+        private void ResetSearch()
+        {
+            if (SearchBox != null)
+            {
+                // Limpiar el texto actual
+                SearchBox.Text = string.Empty;
+                _lastSearchText = string.Empty;
+
+                // Limpiar todos los términos de búsqueda
+                _searchTerms.Clear();
+
+                // Actualizar la visualización
+                UpdateSearchTermsDisplay();
+
+                // Restaurar datos originales si hay datos
+                if (currentData != null && currentData.Count > 0)
                 {
-                    System.Windows.MessageBox.Show($"No se encontraron datos para este concepto en la base de datos {newDatabase}",
-                        "Información no disponible", MessageBoxButton.OK, MessageBoxImage.Information);
+                    _filteredData = new List<Presupuesto>(currentData);
+                    UpdatePaginationWithFilteredData();
+                }
+
+                // Ocultar información de filtro
+                if (FilterInfoBorder != null)
+                {
+                    FilterInfoBorder.Visibility = Visibility.Collapsed;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Actualiza la paginación basada en los datos filtrados actuales
+        /// </summary>
+        private void UpdatePaginationWithFilteredData()
+        {
+            // Calcular el número total de páginas
+            pages = Math.Ceiling((decimal)_filteredData.Count / rowsPerPage);
+
+            // Asegurarse de que la página actual no exceda el número total de páginas
+            if (pageNumber > pages && pages > 0)
+            {
+                pageNumber = (int)pages;
+            }
+            else if (pageNumber < 1 || pages == 0)
+            {
+                pageNumber = 1;
+            }
+
+            // Calcular el conjunto de datos a mostrar en la página actual
+            int lowerBound = (pageNumber - 1) * rowsPerPage;
+            showing = _filteredData.Skip(lowerBound).Take(rowsPerPage).ToList();
+
+            // Actualizar la fuente de datos de la tabla
+            Tabla.ItemsSource = showing;
+
+            // Actualizar visibilidad y texto de los controles de paginación
+            UpdatePaginationControls();
+
+            // Mostrar información de filtrado si hay términos activos
+            if (HasActiveSearchTerms())
+            {
+                // Aquí podríamos añadir un indicador visual de que hay un filtro activo
+                // Por ejemplo, cambiar el color del borde del cuadro de búsqueda
+                SearchBox.BorderBrush = new SolidColorBrush((System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString("#3498DB"));
+            }
+            else
+            {
+                // Restaurar el estilo normal
+                SearchBox.ClearValue(Border.BorderBrushProperty);
+            }
+        }
+
+        /// <summary>
+        /// Actualiza la visualización de información sobre filtros activos
+        /// </summary>
+        private void UpdateFilterInfoDisplay()
+        {
+            if (HasActiveSearchTerms())
+            {
+                // Construir el texto de información del filtro
+                string filterDescription = GetSearchDescription();
+                FilterInfoText.Text = filterDescription;
+
+                // Mostrar el borde de información
+                FilterInfoBorder.Visibility = Visibility.Visible;
+
+                // Actualizar estadísticas si es necesario
+                if (_filteredData.Count != currentData.Count)
+                {
+                    FilterInfoText.Text += $" | Mostrando {_filteredData.Count} de {currentData.Count} elementos";
                 }
             }
             else
             {
-                System.Windows.MessageBox.Show($"No se pudo encontrar una relación entre el ID externo y el ID interno para este concepto",
-                        "Error de relación", MessageBoxButton.OK, MessageBoxImage.Warning);
+                // Ocultar el borde de información si no hay filtros activos
+                FilterInfoBorder.Visibility = Visibility.Collapsed;
             }
         }
 
         /// <summary>
-        /// Propaga un cambio de valor hacia arriba en la jerarquía
+        /// Comprueba si hay algún término de búsqueda activo
         /// </summary>
-        private void PropagateChangeUpwards(Presupuesto node, string changedItemId, double valueDifference)
+        /// <returns>True si hay términos de búsqueda activos</returns>
+        private bool HasActiveSearchTerms()
         {
-            if (node == null)
-                return;
+            return _searchTerms.Count > 0 || !string.IsNullOrEmpty(_lastSearchText);
+        }
 
-            // Si este nodo tiene hijos, buscar entre ellos
-            if (node.hijos != null && node.hijos.Any())
+        /// <summary>
+        /// Muestra una descripción de los términos de búsqueda actuales
+        /// </summary>
+        /// <returns>Texto descriptivo de los términos de búsqueda</returns>
+        private string GetSearchDescription()
+        {
+            if (!HasActiveSearchTerms())
             {
-                // Comprobar si el elemento modificado está entre los hijos directos
-                var directChild = node.hijos.FirstOrDefault(h => h.Id == changedItemId);
-                if (directChild != null)
-                {
-                    // Actualizar el valor del nodo padre
-                    node.display = (node.display ?? 0) + valueDifference;
+                return string.Empty;
+            }
 
-                    // Buscar el padre de este nodo y continuar propagando
-                    if (historial.Count > 0)
-                    {
-                        string parentId = FindParentId(node.Id);
-                        if (!string.IsNullOrEmpty(parentId))
-                        {
-                            var parentNode = presupuestoService.FindPresupuestoById(presupuesto, parentId);
-                            PropagateChangeUpwards(parentNode, node.Id, valueDifference);
-                        }
-                    }
-                }
-                else
-                {
-                    // Buscar en los hijos recursivamente
-                    foreach (var child in node.hijos)
-                    {
-                        PropagateChangeUpwards(child, changedItemId, valueDifference);
-                    }
-                }
+            List<string> terms = new List<string>(_searchTerms);
+            if (!string.IsNullOrEmpty(_lastSearchText))
+            {
+                terms.Add(_lastSearchText);
+            }
+
+            if (terms.Count == 1)
+            {
+                return $"Filtrando por: {terms[0]}";
+            }
+            else
+            {
+                return $"Filtrando por {terms.Count} términos: {string.Join(" OR ", terms)}";
+            }
+        }
+
+        /// <summary>
+        /// Elimina un término específico de la búsqueda
+        /// </summary>
+        /// <param name="term">El término a eliminar</param>
+        private void RemoveSearchTerm(string term)
+        {
+            if (_searchTerms.Contains(term))
+            {
+                _searchTerms.Remove(term);
+                UpdateSearchTermsDisplay();
+                ApplySearchFilter();
             }
         }
 

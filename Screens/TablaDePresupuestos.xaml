@@ -4,16 +4,9 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:Bc3_WPF"
-             xmlns:lvc="clr-namespace:LiveChartsCore.SkiaSharpView.WPF;assembly=LiveChartsCore.SkiaSharpView.WPF"
-             xmlns:vms="clr-namespace:Bc3_WPF.Screens.Charts"
              mc:Ignorable="d" 
              d:DesignHeight="750" d:DesignWidth="1200"
              Background="#F5F7FA">
-
-    <!-- Your ViewModel -->
-    <UserControl.DataContext>
-        <vms:Pie/>
-    </UserControl.DataContext>
 
     <UserControl.Resources>
         <!-- Color palette -->
@@ -241,8 +234,43 @@
                 </Trigger>
             </Style.Triggers>
         </Style>
-    </UserControl.Resources>
 
+        <!-- Estilo para las etiquetas de términos de búsqueda -->
+        <Style x:Key="SearchTermTag" TargetType="Border">
+            <Setter Property="Background" Value="#E1F5FE"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="BorderBrush" Value="{StaticResource PrimaryColor}"/>
+            <Setter Property="CornerRadius" Value="4"/>
+            <Setter Property="Padding" Value="8,4"/>
+            <Setter Property="Margin" Value="0,0,5,5"/>
+        </Style>
+
+        <!-- Estilo para el botón de eliminar términos -->
+        <Style x:Key="TagRemoveButton" TargetType="Button">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Foreground" Value="#95A5A6"/>
+            <Setter Property="Padding" Value="3"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter Property="Foreground" Value="{StaticResource AccentColor}"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </UserControl.Resources>
     <!-- Main Grid Layout -->
     <Grid>
         <!-- Define top-level Rows -->
@@ -297,16 +325,7 @@
                             Orientation="Horizontal" 
                             VerticalAlignment="Center"
                             Margin="0,0,25,0">
-                    <!-- Show Graphs button -->
-                    <Button x:Name="ToggleGraphs"
-                            Style="{StaticResource ModernButton}"
-                            Background="#2ECC71"
-                            Content="Show Graphs"
-                            FontSize="13"
-                            Padding="12,6"
-                            Margin="0,0,10,0"
-                            Click="ShowGraphs"/>
-                    
+
                     <!-- Download Button -->
                     <Button x:Name="SaveButton"
                             Style="{StaticResource ModernButton}"
@@ -331,14 +350,14 @@
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="*"/>
                 </Grid.RowDefinitions>
-                
+
                 <!-- Sidebar Header -->
                 <TextBlock Text="Project Structure"
                            FontSize="16"
                            FontWeight="SemiBold"
                            Foreground="{StaticResource DarkTextColor}"
                            Margin="20,15,20,15"/>
-                
+
                 <!-- Tree View -->
                 <!-- Tree View -->
                 <ScrollViewer Grid.Row="1"
@@ -412,7 +431,7 @@
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="*"/>
                 </Grid.ColumnDefinitions>
-                
+
                 <!-- Carbono Card -->
                 <Border Grid.Column="0" 
                         Style="{StaticResource Card}"
@@ -423,7 +442,7 @@
                             <RowDefinition Height="Auto"/>
                             <RowDefinition Height="*"/>
                         </Grid.RowDefinitions>
-                        
+
                         <TextBlock x:Name="QuantityTitle"
                                    Text="Total Carbono"
                                    FontSize="18"
@@ -431,7 +450,7 @@
                                    Foreground="{StaticResource DarkTextColor}"
                                    HorizontalAlignment="Center"
                                    Margin="0,20,0,0"/>
-                        
+
                         <TextBlock x:Name="Quantity"
                                    Grid.Row="1"
                                    FontSize="28"
@@ -441,7 +460,7 @@
                                    VerticalAlignment="Center"/>
                     </Grid>
                 </Border>
-                
+
                 <!-- Agua Card -->
                 <Border Grid.Column="1" 
                         Style="{StaticResource Card}"
@@ -452,7 +471,7 @@
                             <RowDefinition Height="Auto"/>
                             <RowDefinition Height="*"/>
                         </Grid.RowDefinitions>
-                        
+
                         <TextBlock x:Name="ConceptTitle"
                                    Text="Total Categorias distintas"
                                    FontSize="18"
@@ -460,7 +479,7 @@
                                    Foreground="{StaticResource DarkTextColor}"
                                    HorizontalAlignment="Center"
                                    Margin="0,20,0,0"/>
-                        
+
                         <TextBlock x:Name="Concepts"
                                    Grid.Row="1"
                                    FontSize="28"
@@ -472,66 +491,6 @@
                 </Border>
             </Grid>
         </Border>
-
-        <!-- ========== CHARTS (Row 2) ========== -->
-        <Border Grid.Row="2" Grid.Column="1" 
-                Margin="20,0,20,15"
-                Visibility="Hidden" 
-                Name="ChartSection">
-            <Grid>
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="*"/>
-                </Grid.ColumnDefinitions>
-                
-                <!-- Cartesian Chart Card -->
-                <Border Grid.Column="0" 
-                        Style="{StaticResource Card}"
-                        Height="300" 
-                        Margin="0,0,10,0">
-                    <Grid>
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="*"/>
-                        </Grid.RowDefinitions>
-                        
-                        <TextBlock Text="Distribución de Datos"
-                                   FontSize="16"
-                                   FontWeight="SemiBold"
-                                   Foreground="{StaticResource DarkTextColor}"
-                                   Margin="15,15,15,0"/>
-                        
-                        <lvc:CartesianChart x:Name="Chart"
-                                            Grid.Row="1"
-                                            Margin="10"/>
-                    </Grid>
-                </Border>
-                
-                <!-- Pie Chart Card -->
-                <Border Grid.Column="1" 
-                        Style="{StaticResource Card}"
-                        Height="300" 
-                        Margin="10,0,0,0">
-                    <Grid>
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="*"/>
-                        </Grid.RowDefinitions>
-                        
-                        <TextBlock Text="Distribución Porcentual"
-                                   FontSize="16"
-                                   FontWeight="SemiBold"
-                                   Foreground="{StaticResource DarkTextColor}"
-                                   Margin="15,15,15,0"/>
-                        
-                        <lvc:PieChart x:Name="PieChart"
-                                      Grid.Row="1"
-                                      Margin="10"/>
-                    </Grid>
-                </Border>
-            </Grid>
-        </Border>
-
         <!-- ========== TABLE SECTION (Row 3) ========== -->
         <Border Grid.Row="3" Grid.Column="1" 
                 Style="{StaticResource Card}"
@@ -540,12 +499,18 @@
                 Name="TableSection">
             <Grid>
                 <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto"/> <!-- Header with filter and options -->
-                    <RowDefinition Height="Auto"/> <!-- Table title -->
-                    <RowDefinition Height="*"/>    <!-- DataGrid -->
-                    <RowDefinition Height="Auto"/> <!-- Pagination -->
+                    <RowDefinition Height="Auto"/>
+                    <!-- Header with filter and options -->
+                    <RowDefinition Height="Auto"/>
+                    <!-- Search terms panel -->
+                    <RowDefinition Height="Auto"/>
+                    <!-- Filter info border -->
+                    <RowDefinition Height="*"/>
+                    <!-- DataGrid -->
+                    <RowDefinition Height="Auto"/>
+                    <!-- Pagination -->
                 </Grid.RowDefinitions>
-                
+
                 <!-- Header with Selector -->
                 <Grid Grid.Row="0" Margin="20,15,20,5">
                     <Grid.RowDefinitions>
@@ -553,6 +518,8 @@
                         <!-- Para el título y el botón Back -->
                         <RowDefinition Height="Auto"/>
                         <!-- Para los selectores -->
+                        <RowDefinition Height="Auto"/>
+                        <!-- Para la búsqueda -->
                     </Grid.RowDefinitions>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="Auto"/>
@@ -562,67 +529,160 @@
 
                     <!-- Back Button -->
                     <Button x:Name="BackButton"
-            Grid.Row="0"
-            Grid.Column="0"
-            Content="← Back"
-            Style="{StaticResource ModernButton}"
-            Background="#95A5A6"
-            Padding="12,6"
-            Visibility="Hidden"
-            Click="BackButtonClick"/>
+                            Grid.Row="0"
+                            Grid.Column="0"
+                            Content="← Back"
+                            Style="{StaticResource ModernButton}"
+                            Background="#95A5A6"
+                            Padding="12,6"
+                            Visibility="Hidden"
+                            Click="BackButtonClick"/>
 
                     <!-- Table Title -->
                     <TextBlock x:Name="TitleTable"
-               Grid.Row="0"
-               Grid.Column="1"
-               FontWeight="SemiBold"
-               FontSize="18"
-               Foreground="{StaticResource DarkTextColor}"
-               VerticalAlignment="Center"
-               HorizontalAlignment="Center"
-               Margin="0,0,0,10"/>
+                               Grid.Row="0"
+                               Grid.Column="1"
+                               FontWeight="SemiBold"
+                               FontSize="18"
+                               Foreground="{StaticResource DarkTextColor}"
+                               VerticalAlignment="Center"
+                               HorizontalAlignment="Center"
+                               Margin="0,0,0,10"/>
 
                     <!-- Selectores en la fila inferior, centrados -->
                     <StackPanel Grid.Row="1" 
-                Grid.Column="0"
-                Grid.ColumnSpan="3"
-                Orientation="Horizontal"
-                HorizontalAlignment="Center"
-                Margin="0,5,0,10">
-                        <!-- Selector de Base de Datos -->
-                        <TextBlock Text="Base de Datos:"
-                   VerticalAlignment="Center"
-                   FontWeight="Medium"
-                   Margin="0,0,10,0"/>
-                        <ComboBox x:Name="SelectBaseDatos"
-                  Width="150"
-                  Padding="8,5"
-                  SelectionChanged="handleChangeBaseDatos"
-                  SelectedIndex="0"
-                  Margin="0,0,20,0"/>
+                                Grid.Column="0"
+                                Grid.ColumnSpan="3"
+                                Orientation="Horizontal"
+                                HorizontalAlignment="Center"
+                                Margin="0,5,0,10">
 
                         <!-- Selector de Medidor -->
                         <TextBlock Text="Medidor:"
-                   VerticalAlignment="Center"
-                   FontWeight="Medium"
-                   Margin="0,0,10,0"/>
+                                   VerticalAlignment="Center"
+                                   FontWeight="Medium"
+                                   Margin="0,0,10,0"/>
                         <ComboBox x:Name="SelectMedidor"
-                  Width="150"
-                  Padding="8,5"
-                  SelectionChanged="handleChangeMedidor"
-                  SelectedIndex="0"/>
+                                  Width="150"
+                                  Padding="8,5"
+                                  SelectionChanged="handleChangeMedidor"
+                                  SelectedIndex="0"/>
+                    </StackPanel>
+
+                    <!-- Barra de búsqueda -->
+                    <StackPanel Grid.Row="1"
+                                Grid.Column="0"
+                                Grid.ColumnSpan="3"
+                                Orientation="Horizontal"
+                                HorizontalAlignment="Left"
+                                Margin="0,5,0,10">
+
+                        <TextBlock Text="Filtrar:"
+                                   VerticalAlignment="Center"
+                                   FontWeight="Medium"
+                                   Margin="0,0,10,0"/>
+
+                        <Grid Width="250">
+                            <TextBox x:Name="SearchBox"
+                                     Padding="8,5"
+                                     TextChanged="HandleSearchTextChanged"
+                                     KeyDown="SearchBox_KeyDown"
+                                     VerticalContentAlignment="Center"/>
+
+                            <!-- Clear button inside the TextBox -->
+                            <Button x:Name="ClearSearchButton"
+                                    Content="✕"
+                                    Width="20"
+                                    Height="20"
+                                    HorizontalAlignment="Right"
+                                    Margin="0,0,8,0"
+                                    Background="Transparent"
+                                    BorderThickness="0"
+                                    Foreground="#95A5A6"
+                                    Click="ClearSearchText"
+                                    Visibility="Collapsed"/>
+                        </Grid>
+
+                        <!-- Botón para añadir un término de búsqueda -->
+                        <Button x:Name="AddSearchTermButton"
+                                Width="30"
+                                Height="30"
+                                Margin="5,0,0,0"
+                                Click="AddSearchTerm_Click"
+                                ToolTip="Añadir término de búsqueda">
+                                                <Button.Template>
+                                                    <ControlTemplate TargetType="Button">
+                                                        <Border Background="{StaticResource PrimaryColor}"
+                                            CornerRadius="6"
+                                            Padding="0">
+                                                            <TextBlock Text="+" 
+                                                   FontSize="24" 
+                                                   Foreground="White" 
+                                                   HorizontalAlignment="Center" 
+                                                   VerticalAlignment="Center"
+                                                   Margin="0,0,0,5"/>
+                                                        </Border>
+                                                        <ControlTemplate.Triggers>
+                                                            <Trigger Property="IsMouseOver" Value="True">
+                                                                <Setter Property="Background" Value="#2980B9"/>
+                                                            </Trigger>
+                                                            <Trigger Property="IsPressed" Value="True">
+                                                                <Setter Property="Background" Value="#1F618D"/>
+                                                            </Trigger>
+                                                        </ControlTemplate.Triggers>
+                                                    </ControlTemplate>
+                                                </Button.Template>
+                                            </Button>
                     </StackPanel>
                 </Grid>
 
+                <!-- Panel para mostrar los términos de búsqueda actuales -->
+                <WrapPanel x:Name="SearchTermsPanel"
+                           Grid.Row="1"
+                           Orientation="Horizontal"
+                           Margin="20,0,20,10"
+                           Visibility="Collapsed">
+                    <!-- Las etiquetas de búsqueda se agregarán dinámicamente aquí -->
+                </WrapPanel>
+
+                <!-- Información de filtro activo -->
+                <Border x:Name="FilterInfoBorder"
+                        Grid.Row="2"
+                        Background="#F0F7FF"
+                        BorderBrush="{StaticResource PrimaryColor}"
+                        BorderThickness="0,0,0,1"
+                        Padding="10,5"
+                        Margin="20,0,20,10"
+                        Visibility="Collapsed">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+
+                        <!-- Texto de información del filtro -->
+                        <TextBlock x:Name="FilterInfoText"
+                                   Grid.Column="0"
+                                   Foreground="{StaticResource DarkTextColor}"
+                                   VerticalAlignment="Center" />
+
+                        <!-- Botón para limpiar todos los filtros -->
+                        
+                    </Grid>
+                </Border>
+
                 <!-- The DataGrid -->
                 <DataGrid x:Name="Tabla"
-                          Grid.Row="2"
-                          Style="{StaticResource ModernDataGrid}"
-                          Margin="20,10,20,10"
-                          AutoGenerateColumns="False"
-                          CanUserAddRows="False"
-                          CanUserDeleteRows="False"
-                          IsReadOnly="True">
+          Grid.Row="2"
+          Style="{StaticResource ModernDataGrid}"
+          Margin="20,10,20,10"
+          AutoGenerateColumns="False"
+          CanUserAddRows="False"
+          CanUserDeleteRows="False"
+          IsReadOnly="True"
+          VerticalScrollBarVisibility="Auto"
+          HorizontalScrollBarVisibility="Auto"
+          MaxHeight="500">
                     <DataGrid.Columns>
                         <DataGridTextColumn Header="Id" Binding="{Binding Id}" Width="auto"/>
                         <DataGridTextColumn Header="Internal Id" Binding="{Binding InternalId}" Width="auto"/>
@@ -630,61 +690,35 @@
                         <DataGridTextColumn Header="Category" Binding="{Binding category}" Width="auto"/>
                         <DataGridTextColumn Header="" x:Name="TablaMedidor" Binding="{Binding display}" Width="auto" Visibility="Hidden"/>
                         <DataGridTextColumn Header="Quantity" Binding="{Binding quantity}" Width="auto"/>
-                        <DataGridTextColumn Header="Database" x:Name="TablaBaseDatos" Binding="{Binding database}" Width="auto" Visibility="Hidden"/>
-                        <DataGridTemplateColumn Header="Change DB" Width="Auto" Visibility="Hidden" x:Name="ChangeDB">
-                            <DataGridTemplateColumn.CellTemplate>
-                                <DataTemplate>
-                                    <Button Content="Change DB"
-                                        Style="{StaticResource ModernButton}"
-                                        Background="#9B59B6"
-                                        Padding="8,3"
-                                        FontSize="12"
-                                        Click="HandleChangeDatabase"
-                                        Visibility="Hidden"
-                                        x:Name="ChangeDBButton">
-                                        <Button.Resources>
-                                            <Style TargetType="Border">
-                                                <Setter Property="CornerRadius" Value="4"/>
-                                            </Style>
-                                        </Button.Resources>
-                                    </Button>
-                                    <DataTemplate.Triggers>
-                                        <DataTrigger Binding="{Binding hijos}" Value="{x:Null}">
-                                            <Setter TargetName="ChangeDBButton" Property="Visibility" Value="Visible"/>
-                                        </DataTrigger>
-                                    </DataTemplate.Triggers>
-                                </DataTemplate>
-                            </DataGridTemplateColumn.CellTemplate>
-                        </DataGridTemplateColumn>
                         <DataGridTemplateColumn Header="Options" Width="Auto">
                             <DataGridTemplateColumn.CellTemplate>
                                 <DataTemplate>
                                     <Grid>
                                         <Button x:Name="buttonHijos" 
-                                                Content="View Children"
-                                                Style="{StaticResource ModernButton}"
-                                                Background="#3498DB"
-                                                Padding="8,3"
-                                                FontSize="12"
-                                                Click="handleHijos"
-                                                Visibility="Visible"/>
+                                Content="View Children"
+                                Style="{StaticResource ModernButton}"
+                                Background="#3498DB"
+                                Padding="8,3"
+                                FontSize="12"
+                                Click="handleHijos"
+                                Visibility="Visible"/>
                                         <Button x:Name="nullHijos"
-                                                Content="Split Concept"
-                                                Style="{StaticResource ModernButton}"
-                                                Background="#F39C12"
-                                                Padding="8,3"
-                                                FontSize="12"
-                                                Click="handleSplit"
-                                                Visibility="Hidden"/>
+                                Content="Split Concept"
+                                Style="{StaticResource ModernButton}"
+                                Background="#F39C12"
+                                Padding="8,3"
+                                FontSize="12"
+                                Click="handleSplit"
+                                Visibility="Hidden"/>
                                         <TextBlock x:Name="Past"
-                                                   Text="Previous"
-                                                   Foreground="White"
-                                                   Background="#E74C3C"
-                                                   Padding="8,4"
-                                                   FontSize="12"
-                                                   VerticalAlignment="Center"
-                                                   HorizontalAlignment="Center"
-                                                   Visibility="Hidden">
+                                   Text="Previous"
+                                   Foreground="White"
+                                   Background="#E74C3C"
+                                   Padding="8,4"
+                                   FontSize="12"
+                                   VerticalAlignment="Center"
+                                   HorizontalAlignment="Center"
+                                   Visibility="Hidden">
                                             <TextBlock.Resources>
                                                 <Style TargetType="Border">
                                                     <Setter Property="CornerRadius" Value="4"/>
@@ -802,7 +836,7 @@
                               CanUserDeleteRows="False"
                               CanUserSortColumns="False">
                         <DataGrid.Columns>
-                            <DataGridComboBoxColumn Header="Category"
+                            <DataGridComboBoxColumn Header="Id"
                                                     SelectedItemBinding="{Binding Id}"
                                                     Width="*"
                                                     x:Name="IdField"/>
@@ -856,46 +890,7 @@
                        FontWeight="SemiBold"
                        Margin="0,0,0,15"/>
 
-                    <!-- Item Info -->
-                    <StackPanel Grid.Row="1" Margin="0,0,0,15">
-                        <TextBlock x:Name="DbPopupItemId" 
-                           Text="ID: " 
-                           FontWeight="Medium"/>
-                        <TextBlock x:Name="DbPopupItemName" 
-                           Text="Nombre: " 
-                           Margin="0,5,0,0"/>
-                        <TextBlock x:Name="DbPopupCurrentDb" 
-                           Text="Base de datos actual: " 
-                           Margin="0,5,0,0"/>
-                    </StackPanel>
 
-                    <!-- Database Selection -->
-                    <StackPanel Grid.Row="2" Margin="0,0,0,20">
-                        <TextBlock Text="Seleccionar nueva base de datos:"
-                           Margin="0,0,0,10"/>
-                        <ComboBox x:Name="DbPopupSelector"
-                          Width="Auto"
-                          Padding="8,5"/>
-                    </StackPanel>
-
-                    <!-- Popup Buttons -->
-                    <StackPanel Grid.Row="3"
-                        Orientation="Horizontal"
-                        HorizontalAlignment="Right">
-                        <Button x:Name="CancelDbChange"
-                        Content="Cancelar"
-                        Style="{StaticResource ModernButton}"
-                        Background="#95A5A6"
-                        Margin="0,0,10,0"
-                        Padding="15,8"
-                        Click="CloseDbPopup"/>
-                        <Button x:Name="ApplyDbChange"
-                        Content="Aplicar"
-                        Style="{StaticResource ModernButton}"
-                        Background="{StaticResource SecondaryColor}"
-                        Padding="15,8"
-                        Click="ApplyDatabaseChange"/>
-                    </StackPanel>
                 </Grid>
             </Border>
         </Popup>

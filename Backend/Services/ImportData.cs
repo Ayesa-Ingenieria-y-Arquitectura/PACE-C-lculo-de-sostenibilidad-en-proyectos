@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace Bc3_WPF.Backend.Services
 {
-    internal class ImportData
+    public class ImportData
     {
         public static void ImportDB(string filePath)
         {

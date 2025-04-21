@@ -10,33 +10,25 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="ClosedXML" Version="0.104.2" />
     <PackageReference Include="coverlet.collector" Version="6.0.0" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.8.0" />
-    <PackageReference Include="xunit" Version="2.5.3" />
-    <PackageReference Include="xunit.runner.visualstudio" Version="2.5.3" />
+    <PackageReference Include="Moq" Version="4.20.72" />
+    <PackageReference Include="NUnit" Version="3.14.0" />
+    <PackageReference Include="NUnit.Analyzers" Version="3.9.0" />
+    <PackageReference Include="NUnit3TestAdapter" Version="4.5.0" />
   </ItemGroup>
 
   <ItemGroup>
-    <Reference Include="Bc3-WPF">
-      <HintPath>..\bin\Debug\net8.0-windows\Bc3-WPF.dll</HintPath>
-    </Reference>
-    <Reference Include="MaterialDesignColors">
-      <HintPath>..\bin\Debug\net8.0-windows\MaterialDesignColors.dll</HintPath>
-    </Reference>
-    <Reference Include="MaterialDesignThemes.Wpf">
-      <HintPath>..\bin\Debug\net8.0-windows\MaterialDesignThemes.Wpf.dll</HintPath>
-    </Reference>
-    <Reference Include="Microsoft.Xaml.Behaviors">
-      <HintPath>..\bin\Debug\net8.0-windows\Microsoft.Xaml.Behaviors.dll</HintPath>
-    </Reference>
+    <ProjectReference Include="..\Bc3-WPF.csproj" />
   </ItemGroup>
 
   <ItemGroup>
-    <Using Include="Xunit" />
+    <Using Include="NUnit.Framework" />
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Data\" />
+    <Folder Include="TestResults\" />
   </ItemGroup>
 
 </Project>

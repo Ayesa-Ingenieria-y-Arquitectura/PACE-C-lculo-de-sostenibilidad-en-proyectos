@@ -64,8 +64,46 @@
                 <!-- Botón de Home -->
                 <Button Content="🏠" 
                         Style="{StaticResource MenuButtonStyle}"
-                        ToolTip="Home"
-                        Click="HomeWindows"/>
+                        Click="HomeWindows">
+                    <Button.ToolTip>
+                        <ToolTip Background="#3498DB" Foreground="White" Padding="8,4">
+                            <TextBlock Text="Inicio" FontSize="12"/>
+                        </ToolTip>
+                    </Button.ToolTip>
+                </Button>
+
+                <!-- Botón de Archivos -->
+                <Button Content="📊" 
+                        Style="{StaticResource MenuButtonStyle}"
+                        Click="ExploreFiles_Click">
+                    <Button.ToolTip>
+                        <ToolTip Background="#3498DB" Foreground="White" Padding="8,4">
+                            <TextBlock Text="Análisis BC3" FontSize="12"/>
+                        </ToolTip>
+                    </Button.ToolTip>
+                </Button>
+
+                <!-- Botón de Configuración -->
+                <Button Content="🌍" 
+                        Style="{StaticResource MenuButtonStyle}"
+                        Click="EditClick">
+                    <Button.ToolTip>
+                        <ToolTip Background="#3498DB" Foreground="White" Padding="8,4">
+                            <TextBlock Text="Edición de Metricas de Sostenibilidad" FontSize="12"/>
+                        </ToolTip>
+                    </Button.ToolTip>
+                </Button>
+
+                <!-- Botón de Ayuda -->
+                <Button Content="🔍" 
+                        Style="{StaticResource MenuButtonStyle}"
+                        Click="CompareClick">
+                    <Button.ToolTip>
+                        <ToolTip Background="#3498DB" Foreground="White" Padding="8,4">
+                            <TextBlock Text="Comparativa de Proyectos" FontSize="12"/>
+                        </ToolTip>
+                    </Button.ToolTip>
+                </Button>
             </StackPanel>
         </Border>
 
