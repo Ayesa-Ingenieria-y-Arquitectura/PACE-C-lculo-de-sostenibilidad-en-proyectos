@@ -12,6 +12,7 @@ namespace Bc3_WPF.backend.Modelos
         public float? quantity { get; set; }
         public Boolean? outdated { get; set; }
         public List<double>? values { get; set; }
+        public List<double>? factores { get; set; }
         public double? display { get; set; }
         // Nueva propiedad para la base de datos seleccionada
         public string? database { get; set; }
@@ -59,7 +60,7 @@ namespace Bc3_WPF.backend.Modelos
                 int index = medidores.IndexOf(medidor);
                 float Quantity = quantity ?? 0;
                 double value = values[index];
-                display = Math.Round(values[index] * Quantity, 1);
+                display = Math.Round(values[index] * Quantity * factores[index], 1);
             }
             else
             {

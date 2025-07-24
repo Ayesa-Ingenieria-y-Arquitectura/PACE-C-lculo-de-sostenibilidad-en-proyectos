@@ -7,6 +7,7 @@
         public required string Category { get; set; }
         public required string Indicator { get; set; }
         public required double Value { get; set; }
-        public required string Database { get; set; } // Añadido el campo Database
+        public required double Factor { get; set; }
+        public required string Source { get; set; } // Añadido el campo Database
     }
 }

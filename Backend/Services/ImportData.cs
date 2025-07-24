@@ -13,7 +13,7 @@ namespace Bc3_WPF.Backend.Services
     {
         public static void ImportDB(string filePath)
         {
-            string _connection = "Host=localhost;Username=postgres;Password=r00t;Database=PACE";
+            string _connection = "Host=172.23.6.174;Port=30003;Username=medioambiente_user;Password=qeFw1rgASZaSmP3;Database=pace_medioambiente";
 
             try
             {
@@ -90,8 +90,10 @@ namespace Bc3_WPF.Backend.Services
                     codeRelationships.Add(new CodeRelationship
                     {
                         InternalCode = row.Cell(1).GetString(),
-                        ExternalCode = row.Cell(2).GetString()
-                    });
+                        ExternalCode = row.Cell(2).GetString(),
+                        Factor = row.Cell(3).IsEmpty() ? 1.0 : row.Cell(3).GetDouble(),
+                        Client = row.Cell(4).IsEmpty() ? null : row.Cell(4).GetString(),
+                });
                 }
             }
 
@@ -121,17 +123,18 @@ namespace Bc3_WPF.Backend.Services
                     var sustainValue = new SustainabilityValue
                     {
                         InternalCode = row.Cell(1).GetString(),
-                        DatabaseName = row.Cell(2).GetString(),
+                        Source = row.Cell(2).IsEmpty() ? null: row.Cell(2).GetString(),
                         Category = row.Cell(3).IsEmpty() ? null : row.Cell(3).GetString(),
                         Subcategory = row.Cell(4).IsEmpty() ? null : row.Cell(4).GetString(),
-                        Description = row.Cell(5).IsEmpty() ? null : row.Cell(5).GetString(),
-                        SustainabilityIndicator = row.Cell(6).GetString()
+                        Unit = row.Cell(5).IsEmpty() ? null : row.Cell(5).GetString(),
+                        Description = row.Cell(6).IsEmpty() ? null : row.Cell(6).GetString(),
+                        SustainabilityIndicator = row.Cell(7).GetString()
                     };
 
                     // Manejar el valor double que podría estar vacío
-                    if (!row.Cell(7).IsEmpty())
+                    if (!row.Cell(8).IsEmpty())
                     {
-                        sustainValue.Value = row.Cell(7).GetDouble();
+                        sustainValue.Value = row.Cell(8).GetDouble();
                     }
 
                     sustainabilityValues.Add(sustainValue);
@@ -158,11 +161,13 @@ namespace Bc3_WPF.Backend.Services
                 foreach (var codeRel in codeRelationships)
                 {
                     using (NpgsqlCommand command = new NpgsqlCommand(
-                        "INSERT INTO code_relationship (internal_code, external_code) VALUES (@internalCode, @externalCode) RETURNING id;",
+                        "INSERT INTO code_relationship (internal_code, external_code, factor, cliente) VALUES (@internalCode, @externalCode, @factor, @cliente) RETURNING id;",
                         connection))
                     {
                         command.Parameters.AddWithValue("internalCode", codeRel.InternalCode);
                         command.Parameters.AddWithValue("externalCode", codeRel.ExternalCode);
+                        command.Parameters.AddWithValue("factor", codeRel.Factor.HasValue ? codeRel.Factor.Value : (object)DBNull.Value);
+                        command.Parameters.AddWithValue("cliente", codeRel.Client ?? (object)DBNull.Value);
 
                         int newId = Convert.ToInt32(command.ExecuteScalar());
 
@@ -193,15 +198,16 @@ namespace Bc3_WPF.Backend.Services
                 foreach (var sustainValue in sustainabilityValues)
                 {
                     using (NpgsqlCommand command = new NpgsqlCommand(
-                        "INSERT INTO sustainability_values (internal_code, database_name, category, subcategory, description, sustainability_indicator, value) " +
-                        "VALUES (@internalCode, @databaseName, @category, @subcategory, @description, @sustainabilityIndicator, @value) " +
+                        "INSERT INTO sustainability_values (internal_code, source, category, subcategory, unit, description, sustainability_indicator, value) " +
+                        "VALUES (@internalCode, @source, @category, @subcategory, @unit, @description, @sustainabilityIndicator, @value) " +
                         "RETURNING id;",
                         connection))
                     {
                         command.Parameters.AddWithValue("internalCode", sustainValue.InternalCode);
-                        command.Parameters.AddWithValue("databaseName", sustainValue.DatabaseName);
+                        command.Parameters.AddWithValue("source", sustainValue.Source ?? (object)DBNull.Value);
                         command.Parameters.AddWithValue("category", sustainValue.Category ?? (object)DBNull.Value);
                         command.Parameters.AddWithValue("subcategory", sustainValue.Subcategory ?? (object)DBNull.Value);
+                        command.Parameters.AddWithValue("unit", sustainValue.Unit ?? (object)DBNull.Value);
                         command.Parameters.AddWithValue("description", sustainValue.Description ?? (object)DBNull.Value);
                         command.Parameters.AddWithValue("sustainabilityIndicator", sustainValue.SustainabilityIndicator);
                         command.Parameters.AddWithValue("value", sustainValue.Value.HasValue ? sustainValue.Value.Value : (object)DBNull.Value);
@@ -293,14 +299,17 @@ namespace Bc3_WPF.Backend.Services
     {
         public string InternalCode { get; set; }
         public string ExternalCode { get; set; }
+        public double? Factor { get; set; }
+        public string Client { get; set; }
     }
 
     public class SustainabilityValue
     {
         public string InternalCode { get; set; }
-        public string DatabaseName { get; set; }
+        public string Source { get; set; }
         public string Category { get; set; }
         public string Subcategory { get; set; }
+        public string Unit { get; set; }
         public string Description { get; set; }
         public string SustainabilityIndicator { get; set; }
         public double? Value { get; set; }

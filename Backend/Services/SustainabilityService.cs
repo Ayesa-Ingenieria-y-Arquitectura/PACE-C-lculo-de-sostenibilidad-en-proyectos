@@ -5,7 +5,7 @@ namespace Bc3_WPF.Backend.Services
 {
     public class SustainabilityService
     {
-        private static string _connection = "Host=localhost;Username=postgres;Password=r00t;Database=PACE";
+        private static string _connection = "Host=172.23.6.174;Port=30003;Username=medioambiente_user;Password=qeFw1rgASZaSmP3;Database=pace_medioambiente";
 
         public static List<SustainabilityRecord> getFromDatabase()
         {
@@ -14,10 +14,11 @@ namespace Bc3_WPF.Backend.Services
                 SELECT 
                     cr.external_code AS ExternalId,
                     cr.internal_code AS InternalId,
+                    cr.factor,
                     sv.category || ' ' || sv.subcategory AS Category,
                     sv.sustainability_indicator AS Indicator,
                     sv.value,
-                    sv.database_name AS Database
+                    sv.source AS Source
                 FROM 
                     code_relationship cr
                 JOIN 
@@ -44,10 +45,11 @@ namespace Bc3_WPF.Backend.Services
                         {
                             ExternalId = reader["ExternalId"].ToString(),
                             InternalId = reader["InternalId"].ToString(),
+                            Factor = Convert.ToDouble(reader["Factor"]),
                             Category = reader["Category"].ToString(),
                             Indicator = reader["Indicator"].ToString(),
                             Value = Convert.ToDouble(reader["value"]),
-                            Database = reader["Database"].ToString() // Añadido el campo Database
+                            Source = reader["source"].ToString() // Añadido el campo Database
                         };
                         res.Add(record);
                     }
@@ -73,19 +75,6 @@ namespace Bc3_WPF.Backend.Services
             return data.Select(s => new KeyValuePair<string, string>(s.ExternalId, s.InternalId))
                 .Distinct()
                 .ToList();
-        }
-
-        // Nuevo método para obtener bases de datos
-        public static HashSet<string> getDatabases(List<SustainabilityRecord> data)
-        {
-            return data.Select(s => s.Database).ToHashSet();
-        }
-
-        // Nuevo método para agrupar por base de datos
-        public static Dictionary<string, List<SustainabilityRecord>> groupByDatabase(List<SustainabilityRecord> data)
-        {
-            return data.GroupBy(r => r.Database)
-                .ToDictionary(g => g.Key, g => g.ToList());
         }
     }
 }

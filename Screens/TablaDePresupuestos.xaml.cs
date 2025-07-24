@@ -651,7 +651,7 @@ namespace Bc3_WPF.Screens
 
             // Filtrar los registros por la base de datos y el medidor seleccionados
             var filteredRecords = sustainabilityRecords
-                .Where(sr => sr.Database == dbSelected && sr.Indicator == med)
+                .Where(sr => sr.Indicator == med)
                 .ToList();
 
             // Obtener las relaciones de código
@@ -955,9 +955,7 @@ namespace Bc3_WPF.Screens
                     // Es un nodo hoja y su Id o su nombre o su categoría coincide con algún término
                     ((item.hijos == null || item.hijos.Count == 0) &&
                         (item.Id != null && allTerms.Any(term => item.Id.ToLower().Contains(term)) ||
-                        item.name != null && allTerms.Any(term => item.name.ToLower().Contains(term)) ||
-                        item.category != null && allTerms.Any(term => item.category.ToLower().Contains(term)))) ||
-                    // O tiene hijos y alguno de sus descendientes coincide con algún término
+                        item.InternalId != null && allTerms.Any(term => item.InternalId.ToLower().Contains(term)))) ||                    // O tiene hijos y alguno de sus descendientes coincide con algún término
                     (item.hijos != null &&
                         item.hijos.Count > 0 &&
                         HasMatchingDescendant(item, allTerms))

@@ -13,7 +13,7 @@ namespace Bc3_WPF.Backend.Services
         public static void ExportDB(string filePath)
         {
 
-            string _connection = "Host=localhost;Username=postgres;Password=r00t;Database=PACE";
+            string _connection = "Host=172.23.6.174;Port=30003;Username=medioambiente_user;Password=qeFw1rgASZaSmP3;Database=pace_medioambiente";
 
             try
             {
@@ -48,7 +48,7 @@ namespace Bc3_WPF.Backend.Services
             var worksheet = workbook.Worksheets.Add("CodeRelationship");
 
             // Consulta SQL para obtener datos sin el campo ID
-            string query = "SELECT internal_code, external_code FROM code_relationship";
+            string query = "SELECT internal_code, external_code, factor, Cliente FROM code_relationship";
 
             using (NpgsqlConnection connection = new NpgsqlConnection(ConnectionString))
             {
@@ -60,11 +60,8 @@ namespace Bc3_WPF.Backend.Services
                     // Configurar encabezados
                     worksheet.Cell(1, 1).Value = "internal_code";
                     worksheet.Cell(1, 2).Value = "external_code";
-
-                    // Dar formato a encabezados
-                    var headerRow = worksheet.Range(1, 1, 1, 2);
-                    headerRow.Style.Font.Bold = true;
-                    headerRow.Style.Fill.BackgroundColor = XLColor.LightGray;
+                    worksheet.Cell(1, 3).Value = "Factor";
+                    worksheet.Cell(1, 4).Value = "Cliente";
 
                     // Llenar datos
                     int row = 2;
@@ -72,8 +69,33 @@ namespace Bc3_WPF.Backend.Services
                     {
                         worksheet.Cell(row, 1).Value = reader["internal_code"].ToString();
                         worksheet.Cell(row, 2).Value = reader["external_code"].ToString();
+                        worksheet.Cell(row, 4).Value = reader["Cliente"] != DBNull.Value ? reader["Cliente"].ToString() : string.Empty;
+
+                        if (reader["Factor"] != DBNull.Value)
+                        {
+                            double numValue = Convert.ToDouble(reader["Factor"]);
+                            worksheet.Cell(row, 3).Value = numValue;
+                            worksheet.Cell(row, 3).Style.NumberFormat.Format = "#,##0.00";
+                        }
+
                         row++;
                     }
+
+                    // Crear tabla Excel con formato
+                    var dataRange = worksheet.Range(1, 1, row - 1, 4);
+                    var table = dataRange.CreateTable("CodeRelationshipTable");
+
+                    // Aplicar estilo de tabla
+                    table.Theme = XLTableTheme.TableStyleMedium2;
+
+                    // Habilitar filtros automáticos (ya incluidos en CreateTable)
+                    // Opcional: personalizar más el formato
+                    table.HeadersRow().Style.Font.Bold = true;
+                    table.HeadersRow().Style.Font.FontColor = XLColor.White;
+                    table.HeadersRow().Style.Fill.BackgroundColor = XLColor.DarkBlue;
+
+                    // Alternar colores en las filas
+                    table.DataRange.Style.Fill.BackgroundColor = XLColor.AliceBlue;
 
                     // Ajustar columnas automáticamente
                     worksheet.Columns().AdjustToContents();
@@ -85,12 +107,13 @@ namespace Bc3_WPF.Backend.Services
 
         private static void ExportSustainabilityValuesTable(XLWorkbook workbook, string ConnectionString)
         {
+            Console.WriteLine("Exportando tabla sustainability_values...");
 
             // Crear hoja de trabajo para sustainability_values
             var worksheet = workbook.Worksheets.Add("SustainabilityValues");
 
             // Consulta SQL para obtener datos sin el campo ID
-            string query = "SELECT internal_code, database_name, category, subcategory, description, " +
+            string query = "SELECT internal_code, source, category, subcategory, unit, description, " +
                           "sustainability_indicator, value FROM sustainability_values";
 
             using (NpgsqlConnection connection = new NpgsqlConnection(ConnectionString))
@@ -103,7 +126,7 @@ namespace Bc3_WPF.Backend.Services
                     // Configurar encabezados
                     string[] headers = new string[]
                     {
-                        "internal_code", "database_name", "category", "subcategory",
+                        "internal_code", "source", "category", "subcategory", "unit",
                         "description", "sustainability_indicator", "value"
                     };
 
@@ -112,37 +135,55 @@ namespace Bc3_WPF.Backend.Services
                         worksheet.Cell(1, i + 1).Value = headers[i];
                     }
 
-                    // Dar formato a encabezados
-                    var headerRow = worksheet.Range(1, 1, 1, headers.Length);
-                    headerRow.Style.Font.Bold = true;
-                    headerRow.Style.Fill.BackgroundColor = XLColor.LightGray;
-
                     // Llenar datos
                     int row = 2;
                     while (reader.Read())
                     {
                         worksheet.Cell(row, 1).Value = reader["internal_code"].ToString();
-                        worksheet.Cell(row, 2).Value = reader["database_name"].ToString();
+                        worksheet.Cell(row, 2).Value = reader["source"] != DBNull.Value ? reader["source"].ToString() : string.Empty;
                         worksheet.Cell(row, 3).Value = reader["category"] != DBNull.Value ? reader["category"].ToString() : string.Empty;
                         worksheet.Cell(row, 4).Value = reader["subcategory"] != DBNull.Value ? reader["subcategory"].ToString() : string.Empty;
-                        worksheet.Cell(row, 5).Value = reader["description"] != DBNull.Value ? reader["description"].ToString() : string.Empty;
-                        worksheet.Cell(row, 6).Value = reader["sustainability_indicator"].ToString();
+                        worksheet.Cell(row, 5).Value = reader["unit"] != DBNull.Value ? reader["unit"].ToString() : string.Empty;
+                        worksheet.Cell(row, 6).Value = reader["description"] != DBNull.Value ? reader["description"].ToString() : string.Empty;
+                        worksheet.Cell(row, 7).Value = reader["sustainability_indicator"].ToString();
 
                         // Formatear el valor numérico
                         if (reader["value"] != DBNull.Value)
                         {
                             double numValue = Convert.ToDouble(reader["value"]);
-                            worksheet.Cell(row, 7).Value = numValue;
-                            worksheet.Cell(row, 7).Style.NumberFormat.Format = "#,##0.00";
+                            worksheet.Cell(row, 8).Value = numValue;
+                            worksheet.Cell(row, 8).Style.NumberFormat.Format = "#,##0.00";
                         }
 
                         row++;
                     }
 
+                    // Crear tabla Excel con formato
+                    var dataRange = worksheet.Range(1, 1, row - 1, headers.Length);
+                    var table = dataRange.CreateTable("SustainabilityValuesTable");
+
+                    // Aplicar estilo de tabla
+                    table.Theme = XLTableTheme.TableStyleMedium6;
+
+                    // Personalizar formato de encabezados
+                    table.HeadersRow().Style.Font.Bold = true;
+                    table.HeadersRow().Style.Font.FontColor = XLColor.White;
+                    table.HeadersRow().Style.Fill.BackgroundColor = XLColor.DarkGreen;
+
+                    // Alternar colores en las filas de datos
+                    table.DataRange.Style.Fill.BackgroundColor = XLColor.Honeydew;
+
+                    // Formato especial para la columna de valores numéricos
+                    var valueColumn = table.DataRange.Column(8);
+                    valueColumn.Style.NumberFormat.Format = "#,##0.00";
+                    valueColumn.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Right;
+
                     // Ajustar columnas automáticamente
                     worksheet.Columns().AdjustToContents();
                 }
             }
+
+            Console.WriteLine("Tabla sustainability_values exportada exitosamente.");
         }
     }
 }

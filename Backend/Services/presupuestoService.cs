@@ -134,6 +134,7 @@ namespace Bc3_WPF.backend.Services
                 {
                     List<SustainabilityRecord> sr = data.Where(r => r.ExternalId == hijo.Id).ToList();
                     p.values = new();
+                    p.factores = new();
                     p.medidores = new();
                     foreach (SustainabilityRecord s in sr)
                     {
@@ -141,6 +142,7 @@ namespace Bc3_WPF.backend.Services
                         p.category = s.Category;
                         p.medidores.Add(s.Indicator);
                         p.values.Add(s.Value);
+                        p.factores.Add(s.Factor);
                     }
                 }
 
