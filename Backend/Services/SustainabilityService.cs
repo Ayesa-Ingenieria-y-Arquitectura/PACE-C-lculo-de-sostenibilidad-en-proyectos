@@ -43,13 +43,13 @@ namespace Bc3_WPF.Backend.Services
                     {
                         var record = new SustainabilityRecord
                         {
-                            ExternalId = reader["ExternalId"].ToString(),
-                            InternalId = reader["InternalId"].ToString(),
-                            Factor = Convert.ToDouble(reader["Factor"]),
-                            Category = reader["Category"].ToString(),
-                            Indicator = reader["Indicator"].ToString(),
-                            Value = Convert.ToDouble(reader["value"]),
-                            Source = reader["source"].ToString() // Añadido el campo Database
+                            ExternalId = reader["ExternalId"] == DBNull.Value ? "" : reader["ExternalId"].ToString(),
+                            InternalId = reader["InternalId"] == DBNull.Value ? "" : reader["InternalId"].ToString(),
+                            Factor = reader["Factor"] == DBNull.Value ? 1.0 : Convert.ToDouble(reader["Factor"]),
+                            Category = reader["Category"] == DBNull.Value ? "" : reader["Category"].ToString(),
+                            Indicator = reader["Indicator"] == DBNull.Value ? "" : reader["Indicator"].ToString(),
+                            Value = reader["value"] == DBNull.Value ? 0.0 : Convert.ToDouble(reader["value"]),
+                            Source = reader["source"] == DBNull.Value ? "" : reader["source"].ToString() // Añadido el campo Database
                         };
                         res.Add(record);
                     }

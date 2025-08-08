@@ -89,7 +89,7 @@ namespace Bc3_WPF.backend.Services
 
         private static Concepto searchPrincipal(List<Concepto> conceptos)
         {
-            Concepto res = conceptos.Find(e => e.Id.EndsWith("##"));
+            Concepto res = conceptos.Find(e => e.Id.Contains("##"));
 
             return res;
         }

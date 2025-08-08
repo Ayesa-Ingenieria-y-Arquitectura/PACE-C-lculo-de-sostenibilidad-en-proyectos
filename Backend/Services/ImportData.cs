@@ -41,6 +41,7 @@ namespace Bc3_WPF.Backend.Services
             }
             catch (Exception ex)
             {
+                throw ex;
                 Console.WriteLine($"Error durante la importación: {ex.Message}");
                 Console.WriteLine(ex.StackTrace);
             }
