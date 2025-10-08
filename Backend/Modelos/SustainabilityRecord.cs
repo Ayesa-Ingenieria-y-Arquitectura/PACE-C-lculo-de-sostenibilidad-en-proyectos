@@ -4,6 +4,7 @@
     {
         public required string ExternalId { get; set; }
         public required string InternalId { get; set; }
+        public required string Description { get; set; }
         public required string Category { get; set; }
         public required string Indicator { get; set; }
         public required double Value { get; set; }

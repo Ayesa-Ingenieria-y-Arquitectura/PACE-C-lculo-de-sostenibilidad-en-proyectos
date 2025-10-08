@@ -8,7 +8,7 @@
     <Compile Update="Screens\Home.xaml.cs">
       <SubType>Code</SubType>
     </Compile>
-    <Compile Update="Screens\TablaDePresupuestos.xaml.cs">
+    <Compile Update="Screens\Tabla Presupuestos\Main.cs">
       <SubType>Code</SubType>
     </Compile>
     <Compile Update="Screens\Databases.xaml.cs">
@@ -25,7 +25,7 @@
     <Page Update="Screens\Home.xaml">
       <SubType>Designer</SubType>
     </Page>
-    <Page Update="Screens\TablaDePresupuestos.xaml">
+    <Page Update="Screens\Tabla Presupuestos\TablaDePresupuestos.xaml">
       <SubType>Designer</SubType>
     </Page>
     <Page Update="Screens\Databases.xaml">

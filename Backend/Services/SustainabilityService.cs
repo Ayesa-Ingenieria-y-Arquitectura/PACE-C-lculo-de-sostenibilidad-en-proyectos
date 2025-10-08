@@ -11,13 +11,14 @@ namespace Bc3_WPF.Backend.Services
         {
             List<SustainabilityRecord> res = new();
             string getQuery = @"
-                SELECT 
+                SELECT
                     cr.external_code AS ExternalId,
                     cr.internal_code AS InternalId,
-                    cr.factor,
+                    cr.factor AS Factor,
+                    sv.description AS description,
                     sv.category || ' ' || sv.subcategory AS Category,
                     sv.sustainability_indicator AS Indicator,
-                    sv.value,
+                    sv.value AS value,
                     sv.source AS Source
                 FROM 
                     code_relationship cr
@@ -45,10 +46,11 @@ namespace Bc3_WPF.Backend.Services
                         {
                             ExternalId = reader["ExternalId"] == DBNull.Value ? "" : reader["ExternalId"].ToString(),
                             InternalId = reader["InternalId"] == DBNull.Value ? "" : reader["InternalId"].ToString(),
-                            Factor = reader["Factor"] == DBNull.Value ? 1.0 : Convert.ToDouble(reader["Factor"]),
+                            Description = reader["description"] == DBNull.Value ? "" : reader["description"].ToString(),
+                            Factor = reader["Factor"] == DBNull.Value ? 1.0 : Math.Round(Convert.ToDouble(reader["Factor"]), 2),
                             Category = reader["Category"] == DBNull.Value ? "" : reader["Category"].ToString(),
                             Indicator = reader["Indicator"] == DBNull.Value ? "" : reader["Indicator"].ToString(),
-                            Value = reader["value"] == DBNull.Value ? 0.0 : Convert.ToDouble(reader["value"]),
+                            Value = reader["value"] == DBNull.Value ? 0.0 : Math.Round(Convert.ToDouble(reader["value"]), 2),
                             Source = reader["source"] == DBNull.Value ? "" : reader["source"].ToString() // Añadido el campo Database
                         };
                         res.Add(record);
@@ -75,6 +77,11 @@ namespace Bc3_WPF.Backend.Services
             return data.Select(s => new KeyValuePair<string, string>(s.ExternalId, s.InternalId))
                 .Distinct()
                 .ToList();
+        }
+
+        public static List<Material> getMaterials(List<SustainabilityRecord> data)
+        {
+            return data.Select(e => new Material(e.ExternalId, e.InternalId, e.Category, e.Description, e.Factor, e.Value, e.Indicator)).ToList();
         }
     }
 }

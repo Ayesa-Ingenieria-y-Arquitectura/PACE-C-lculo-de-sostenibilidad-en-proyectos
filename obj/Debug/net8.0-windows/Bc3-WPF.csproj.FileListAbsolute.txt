@@ -25,9 +25,7 @@ C:\Users\prodriguezsa\source\repos\Bc3-WPF\obj\Debug\net8.0-windows\Bc3-WPF_Mark
 C:\Users\prodriguezsa\source\repos\Bc3-WPF\obj\Debug\net8.0-windows\Window1.g.cs
 C:\Users\prodriguezsa\source\repos\Bc3-WPF\obj\Debug\net8.0-windows\Window1.baml
 C:\Users\prodriguezsa\source\repos\Bc3-WPF\obj\Debug\net8.0-windows\Screens\Home.g.cs
-C:\Users\prodriguezsa\source\repos\Bc3-WPF\obj\Debug\net8.0-windows\Screens\TablaDePresupuestos.g.cs
 C:\Users\prodriguezsa\source\repos\Bc3-WPF\obj\Debug\net8.0-windows\Screens\Home.baml
-C:\Users\prodriguezsa\source\repos\Bc3-WPF\obj\Debug\net8.0-windows\Screens\TablaDePresupuestos.baml
 C:\Users\prodriguezsa\source\repos\Bc3-WPF\bin\Debug\net8.0-windows\HarfBuzzSharp.dll
 C:\Users\prodriguezsa\source\repos\Bc3-WPF\bin\Debug\net8.0-windows\LiveChartsCore.dll
 C:\Users\prodriguezsa\source\repos\Bc3-WPF\bin\Debug\net8.0-windows\LiveChartsCore.SkiaSharpView.dll
@@ -61,3 +59,5 @@ C:\Users\prodriguezsa\source\repos\Bc3-WPF\bin\Debug\net8.0-windows\SixLabors.Fo
 C:\Users\prodriguezsa\source\repos\Bc3-WPF\bin\Debug\net8.0-windows\System.IO.Packaging.dll
 C:\Users\prodriguezsa\source\repos\Bc3-WPF\obj\Debug\net8.0-windows\Screens\Comparador.g.cs
 C:\Users\prodriguezsa\source\repos\Bc3-WPF\obj\Debug\net8.0-windows\Screens\Comparador.baml
+C:\Users\prodriguezsa\source\repos\Bc3-WPF\obj\Debug\net8.0-windows\Screens\Tabla Presupuestos\TablaDePresupuestos.g.cs
+C:\Users\prodriguezsa\source\repos\Bc3-WPF\obj\Debug\net8.0-windows\Screens\Tabla Presupuestos\TablaDePresupuestos.baml

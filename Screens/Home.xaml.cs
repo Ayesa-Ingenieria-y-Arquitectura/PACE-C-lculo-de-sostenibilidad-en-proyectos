@@ -1,5 +1,6 @@
 ﻿using System.Windows;
 using System.Windows.Controls;
+using Bc3_WPF.Screens.Tabla_Presupuestos;
 
 namespace Bc3_WPF.Screens
 {
@@ -19,7 +20,7 @@ namespace Bc3_WPF.Screens
             Window mainWindow = Window.GetWindow(this);
 
             // Crear una instancia del UserControl Databases
-            Bc3_WPF.Screens.TablaDePresupuestos databasesScreen = new Bc3_WPF.Screens.TablaDePresupuestos();
+            TablaDePresupuestos databasesScreen = new TablaDePresupuestos();
 
             // Asumiendo que la ventana principal tiene un ContentControl o Frame llamado MainContent
             // donde se cargan los diferentes UserControls

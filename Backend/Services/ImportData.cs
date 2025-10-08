@@ -2,6 +2,7 @@
 using Npgsql;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -11,6 +12,7 @@ namespace Bc3_WPF.Backend.Services
 {
     public class ImportData
     {
+        [ExcludeFromCodeCoverage]
         public static void ImportDB(string filePath)
         {
             string _connection = "Host=172.23.6.174;Port=30003;Username=medioambiente_user;Password=qeFw1rgASZaSmP3;Database=pace_medioambiente";
@@ -146,6 +148,7 @@ namespace Bc3_WPF.Backend.Services
             return sustainabilityValues;
         }
 
+        [ExcludeFromCodeCoverage]
         private static Dictionary<string, int> ImportCodeRelationships(List<CodeRelationship> codeRelationships, string ConnectionString)
         {
             Console.WriteLine("Importando datos a tabla code_relationship...");
@@ -185,6 +188,7 @@ namespace Bc3_WPF.Backend.Services
             return internalCodeToIdMap;
         }
 
+        [ExcludeFromCodeCoverage]
         private static Dictionary<string, int> ImportSustainabilityValues(List<SustainabilityValue> sustainabilityValues, string ConnectionString)
         {
             Console.WriteLine("Importando datos a tabla sustainability_values...");
@@ -216,7 +220,7 @@ namespace Bc3_WPF.Backend.Services
                         int newId = Convert.ToInt32(command.ExecuteScalar());
 
                         // Crear una clave compuesta para identificar el registro
-                        string key = sustainValue.InternalCode;
+                        string key = sustainValue.InternalCode + sustainValue.SustainabilityIndicator;
                         sustainabilityValueIds[key] = newId;
                     }
                 }
@@ -225,6 +229,7 @@ namespace Bc3_WPF.Backend.Services
             Console.WriteLine($"Se importaron {sustainabilityValues.Count} registros a sustainability_values.");
             return sustainabilityValueIds;
         }
+        [ExcludeFromCodeCoverage]
 
         private static void CreateRelationships(Dictionary<string, int> codeRelationshipIds, Dictionary<string, int> sustainabilityValueIds, string ConnectionString)
         {

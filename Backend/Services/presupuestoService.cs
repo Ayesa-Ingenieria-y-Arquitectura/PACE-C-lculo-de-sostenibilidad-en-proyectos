@@ -8,12 +8,14 @@ using Bc3_WPF.Backend.Modelos;
 using Bc3_WPF.Backend.Services;
 using System.Security.AccessControl;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Bc3_WPF.backend.Services
 {
 
     public class presupuestoService
     {
+        [ExcludeFromCodeCoverage]
         public static (Presupuesto, HashSet<string>, Dictionary<string, List<string>>) loadFromBC3(string filename)
         {
             List<SustainabilityRecord> data = SustainabilityService.getFromDatabase();
@@ -42,6 +44,7 @@ namespace Bc3_WPF.backend.Services
             return (obj, list, dict);
         }
 
+        [ExcludeFromCodeCoverage]
         private static Presupuesto presupuestoFromConcept(List<Concepto> conceptos)
         {
             Concepto principal = searchPrincipal(conceptos);
@@ -55,6 +58,7 @@ namespace Bc3_WPF.backend.Services
 
         }
 
+        [ExcludeFromCodeCoverage]
         private static List<Presupuesto>? getHijos(List<Concepto> conceptos, List<KeyValuePair<string, float?>> hijos)
         {
             List<Presupuesto> res = new List<Presupuesto>();
@@ -80,6 +84,7 @@ namespace Bc3_WPF.backend.Services
             return res;
         }
 
+        [ExcludeFromCodeCoverage]
         private static Concepto searchById(List<Concepto> conceptos, string id)
         {
             Concepto res = conceptos.Where(e => e.Id.Split("#")[0].Split("\\")[0] == id.Split("#")[0].Split("\\")[0]).First();

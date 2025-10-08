@@ -13,7 +13,8 @@ namespace Bc3_WPF.backend.Modelos
         public Boolean? outdated { get; set; }
         public List<double>? values { get; set; }
         public List<double>? factores { get; set; }
-        public double? display { get; set; }
+        public decimal? display { get; set; }
+        public decimal? percentage { get; set; }
         // Nueva propiedad para la base de datos seleccionada
         public string? database { get; set; }
         public Presupuesto? Parent { get; set; }
@@ -58,13 +59,18 @@ namespace Bc3_WPF.backend.Modelos
             if (medidores != null && medidores.Contains(medidor))
             {
                 int index = medidores.IndexOf(medidor);
-                float Quantity = quantity ?? 0;
-                double value = values[index];
-                display = Math.Round(values[index] * Quantity * factores[index], 1);
+                decimal Quantity = (decimal)(quantity ?? 0);
+                decimal value = (decimal)values[index];
+                display = value * Quantity * (decimal)factores[index];
+                if (Parent != null && Parent.display != 0)
+                    percentage = (display / Parent.display) * 100;
+                else
+                    percentage = 0;
             }
             else
             {
                 display = 0;
+                percentage = 0;
             }
         }
 

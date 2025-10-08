@@ -136,5 +136,11 @@ C:\Users\prodriguezsa\source\repos\Bc3-WPF\Testing\obj\Debug\net8.0-windows\refi
 C:\Users\prodriguezsa\source\repos\Bc3-WPF\Testing\obj\Debug\net8.0-windows\Testing.pdb
 C:\Users\prodriguezsa\source\repos\Bc3-WPF\Testing\obj\Debug\net8.0-windows\Testing.genruntimeconfig.cache
 C:\Users\prodriguezsa\source\repos\Bc3-WPF\Testing\obj\Debug\net8.0-windows\ref\Testing.dll
-C:\Users\prodriguezsa\source\repos\Bc3-WPF\Testing\bin\Debug\net8.0-windows\Castle.Core.dll
-C:\Users\prodriguezsa\source\repos\Bc3-WPF\Testing\bin\Debug\net8.0-windows\Moq.dll
+C:\Users\prodriguezsa\source\repos\Bc3-WPF\Testing\bin\Debug\net8.0-windows\BouncyCastle.Cryptography.dll
+C:\Users\prodriguezsa\source\repos\Bc3-WPF\Testing\bin\Debug\net8.0-windows\Docker.DotNet.dll
+C:\Users\prodriguezsa\source\repos\Bc3-WPF\Testing\bin\Debug\net8.0-windows\Docker.DotNet.X509.dll
+C:\Users\prodriguezsa\source\repos\Bc3-WPF\Testing\bin\Debug\net8.0-windows\ICSharpCode.SharpZipLib.dll
+C:\Users\prodriguezsa\source\repos\Bc3-WPF\Testing\bin\Debug\net8.0-windows\Renci.SshNet.dll
+C:\Users\prodriguezsa\source\repos\Bc3-WPF\Testing\bin\Debug\net8.0-windows\System.IO.Pipelines.dll
+C:\Users\prodriguezsa\source\repos\Bc3-WPF\Testing\bin\Debug\net8.0-windows\Testcontainers.dll
+C:\Users\prodriguezsa\source\repos\Bc3-WPF\Testing\bin\Debug\net8.0-windows\Testcontainers.PostgreSql.dll
