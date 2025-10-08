@@ -16,8 +16,6 @@
 /obj/Debug/net8.0-windows/Screens/Page1.g.i.cs
 /obj/Debug/net8.0-windows/Screens/UserControl1.g.cs
 /obj/Debug/net8.0-windows/Screens/UserControl1.g.i.cs
-/Screens
-/Screens/Comparator.xaml
-/Screens/Comparator.xaml.cs
-/Screens/UserControl1.xaml
-/Screens/UserControl1.xaml.cs
+
+obj/*
+bin/*
