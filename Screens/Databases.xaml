@@ -1,0 +1,408 @@
+﻿<UserControl x:Class="Bc3_WPF.Screens.Databases"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:Bc3_WPF.Screens"
+             mc:Ignorable="d" 
+             d:DesignHeight="450" d:DesignWidth="800">
+    <UserControl.Resources>
+        <!-- Color palette -->
+        <SolidColorBrush x:Key="PrimaryColor" Color="#3498DB"/>
+        <SolidColorBrush x:Key="SecondaryColor" Color="#2ECC71"/>
+        <SolidColorBrush x:Key="DarkTextColor" Color="#2C3E50"/>
+        <SolidColorBrush x:Key="LightTextColor" Color="#ECF0F1"/>
+        <SolidColorBrush x:Key="BackgroundLight" Color="#FFFFFF"/>
+        <SolidColorBrush x:Key="BackgroundDark" Color="#34495E"/>
+        <SolidColorBrush x:Key="AccentColor" Color="#E74C3C"/>
+        <SolidColorBrush x:Key="WarningColor" Color="#F39C12"/>
+
+        <!-- Button styles -->
+        <Style x:Key="ModernButton" TargetType="Button">
+            <Setter Property="Background" Value="{StaticResource PrimaryColor}"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Padding" Value="15,8"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}"
+                                CornerRadius="6"
+                                Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter Property="Background" Value="#2980B9"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter Property="Background" Value="#1F618D"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Card style for rectangles -->
+        <Style x:Key="Card" TargetType="Border">
+            <Setter Property="Background" Value="{StaticResource BackgroundLight}"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="CornerRadius" Value="10"/>
+            <Setter Property="Effect">
+                <Setter.Value>
+                    <DropShadowEffect BlurRadius="15" ShadowDepth="2" Opacity="0.2" Color="#555"/>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </UserControl.Resources>
+
+    <!-- Main Grid Layout -->
+    <Grid>
+        <!-- Define top-level Rows -->
+        <Grid.RowDefinitions>
+            <RowDefinition Height="70"/>
+            <!-- Header with title -->
+            <RowDefinition Height="Auto"/>
+            <!-- Cards (Export/Import) -->
+            <RowDefinition Height="*"/>
+            <!-- Excel Structure Explanation -->
+        </Grid.RowDefinitions>
+
+        <!-- ========== HEADER WITH TITLE (Row 0) ========== -->
+        <Border Grid.Row="0"
+                Background="{StaticResource BackgroundLight}"
+                BorderThickness="0 0 0 1"
+                BorderBrush="#E0E0E0">
+            <Border.Effect>
+                <DropShadowEffect BlurRadius="10" ShadowDepth="1" Opacity="0.2" Color="#555"/>
+            </Border.Effect>
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+
+                <!-- Title -->
+                <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center" Margin="25,0">
+                    <TextBlock Text="🗄️" FontSize="26" VerticalAlignment="Center"/>
+                    <TextBlock Text="Gestión de Bases de Datos"
+                               FontSize="22" 
+                               FontWeight="SemiBold"
+                               Foreground="{StaticResource DarkTextColor}"
+                               VerticalAlignment="Center"
+                               Margin="12,0,0,0"/>
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <!-- ========== CARDS FOR EXPORT/IMPORT (Row 1) ========== -->
+        <Border Grid.Row="1" 
+                Margin="25,20,25,15"
+                Padding="0,0,0,15"
+                BorderThickness="0">
+            <!-- Cards in a Grid -->
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+
+                <!-- Export Database Card -->
+                <Border Grid.Column="0" 
+                        Style="{StaticResource Card}"
+                        Height="200" 
+                        Margin="0,0,10,0">
+                    <Grid Margin="20">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
+
+                        <TextBlock Text="Exportar Base de Datos"
+                                   FontSize="18"
+                                   FontWeight="SemiBold"
+                                   Foreground="{StaticResource DarkTextColor}"/>
+
+                        <TextBlock Grid.Row="1"
+                                   Text="Exporta a un archivo Excel todos los datos que haya en la base de datos de sostenibilidad. Así podrá modificarlos comodamente, para más adelante subirlos."
+                                   TextWrapping="Wrap"
+                                   FontSize="14"
+                                   Margin="0,15,0,0"
+                                   Foreground="{StaticResource DarkTextColor}"/>
+
+                        <Button Grid.Row="2"
+                                Content="Exportar Base de Datos"
+                                Style="{StaticResource ModernButton}"
+                                Background="{StaticResource SecondaryColor}"
+                                HorizontalAlignment="Left"
+                                VerticalAlignment="Bottom"
+                                Margin="0,15,0,0"
+                                Click="ExportDatabase_Click"/>
+                    </Grid>
+                </Border>
+
+                <!-- Import Database Card -->
+                <Border Grid.Column="1" 
+                        Style="{StaticResource Card}"
+                        Height="200" 
+                        Margin="10,0,0,0">
+                    <Grid Margin="20">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
+
+                        <TextBlock Text="Importar Base de Datos"
+                                   FontSize="18"
+                                   FontWeight="SemiBold"
+                                   Foreground="{StaticResource DarkTextColor}"/>
+
+                        <TextBlock Grid.Row="1"
+                                   Text="Importa Todos los datos en el excel a la base de datos. Estos datos ya podrán ser usados en el analisis del archivo .bc3"
+                                   TextWrapping="Wrap"
+                                   FontSize="14"
+                                   Margin="0,15,0,0"
+                                   Foreground="{StaticResource DarkTextColor}"/>
+
+                        <Button Grid.Row="2"
+                                Content="Importar Base de Datos"
+                                Style="{StaticResource ModernButton}"
+                                Background="{StaticResource WarningColor}"
+                                HorizontalAlignment="Left"
+                                VerticalAlignment="Bottom"
+                                Margin="0,15,0,0"
+                                Click="ImportDatabase_Click"/>
+                    </Grid>
+                </Border>
+
+            </Grid>
+
+        </Border>
+
+        <!-- ========== EXCEL STRUCTURE EXPLANATION (Row 2) ========== -->
+        <Border Grid.Row="2" 
+                Style="{StaticResource Card}"
+                Margin="25,0,25,20">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+
+                <!-- Section Title -->
+                <TextBlock Text="Estructura del Archivo Excel"
+                           FontSize="18"
+                           FontWeight="SemiBold"
+                           Foreground="{StaticResource DarkTextColor}"
+                           Margin="20,20,20,15"/>
+
+                <!-- Excel Structure Content -->
+                <ScrollViewer Grid.Row="1"
+                              VerticalScrollBarVisibility="Auto"
+                              Margin="20,0,20,20">
+                    <StackPanel>
+                        <!-- Excel 1: Database Structure -->
+                        <TextBlock Text="1. Hoja CodeRelationship"
+                                   FontSize="16"
+                                   FontWeight="SemiBold"
+                                   Foreground="{StaticResource PrimaryColor}"
+                                   Margin="0,0,0,10"/>
+
+                        <TextBlock TextWrapping="Wrap"
+                                   Margin="0,0,0,15">
+                            Hoja de relacción entre conceptos del BC3 con conceptos internos:
+                        </TextBlock>
+
+                        <Border Background="#F8F9FA"
+                                BorderBrush="#E0E0E0"
+                                BorderThickness="1"
+                                CornerRadius="6"
+                                Padding="15"
+                                Margin="0,0,0,20">
+                            <Grid>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="auto"/>
+                                    <RowDefinition Height="auto"/>
+                                    <RowDefinition Height="auto"/>
+                                </Grid.RowDefinitions>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="150"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+
+                                <!-- Headers -->
+                                <TextBlock Grid.Row="0" Grid.Column="0"
+                                           Text="Columna"
+                                           FontWeight="Bold"
+                                           Margin="0,0,0,8"/>
+                                <TextBlock Grid.Row="0" Grid.Column="1"
+                                           Text="Descripción"
+                                           FontWeight="Bold"
+                                           Margin="0,0,0,8"/>
+
+                                <!-- Rows -->
+                                <TextBlock Grid.Row="1" Grid.Column="0" Text="internal_code"/>
+                                <TextBlock Grid.Row="1" Grid.Column="1" 
+                                           Text="Identificador interno del concepto"
+                                           TextWrapping="Wrap"/>
+
+                                <TextBlock Grid.Row="2" Grid.Column="0" 
+                                           Text="external_code"
+                                           Margin="0,8,0,0"/>
+                                <TextBlock Grid.Row="2" Grid.Column="1" 
+                                           Text="Identificador del concepto en los archivos BC3 (Id en analizar BC3)"
+                                           TextWrapping="Wrap"
+                                           Margin="0,8,0,0"/>
+                            </Grid>
+                        </Border>
+
+                        <!-- Excel 2: Metrics Structure -->
+                        <TextBlock Text="2. Hoja SustainabilityValues"
+                                   FontSize="16"
+                                   FontWeight="SemiBold"
+                                   Foreground="{StaticResource PrimaryColor}"
+                                   Margin="0,0,0,10"/>
+
+                        <TextBlock TextWrapping="Wrap"
+                                   Margin="0,0,0,15">
+                            Hoja con los indicadores de sostenibilidad, asociados a cada concepto:
+                        </TextBlock>
+
+                        <Border Background="#F8F9FA"
+                                BorderBrush="#E0E0E0"
+                                BorderThickness="1"
+                                CornerRadius="6"
+                                Padding="15"
+                                Margin="0,0,0,20">
+                            <Grid>
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="auto"/>
+                                    <RowDefinition Height="auto"/>
+                                    <RowDefinition Height="auto"/>
+                                    <RowDefinition Height="auto"/>
+                                    <RowDefinition Height="auto"/>
+                                    <RowDefinition Height="auto"/>
+                                    <RowDefinition Height="auto"/>
+                                    <RowDefinition Height="auto"/>
+                                </Grid.RowDefinitions>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="150"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+
+                                <!-- Headers -->
+                                <TextBlock Grid.Row="0" Grid.Column="0"
+                                           Text="Columna"
+                                           FontWeight="Bold"
+                                           Margin="0,0,0,8"/>
+                                <TextBlock Grid.Row="0" Grid.Column="1"
+                                           Text="Descripción"
+                                           FontWeight="Bold"
+                                           Margin="0,0,0,8"/>
+
+                                <!-- Rows -->
+                                <TextBlock Grid.Row="1" Grid.Column="0" Text="internal_code"/>
+                                <TextBlock Grid.Row="1" Grid.Column="1" 
+                                           Text="Identificador interno del concepto"
+                                           TextWrapping="Wrap"/>
+
+                                <TextBlock Grid.Row="2" Grid.Column="0" 
+                                           Text="database_name"
+                                           Margin="0,8,0,0"/>
+                                <TextBlock Grid.Row="2" Grid.Column="1" 
+                                           Text="Nombre de la base de datos a la que pertenece (Ayesa, Aena...)"
+                                           TextWrapping="Wrap"
+                                           Margin="0,8,0,0"/>
+
+                                <TextBlock Grid.Row="3" Grid.Column="0" 
+                                           Text="category"
+                                           Margin="0,8,0,0"/>
+                                <TextBlock Grid.Row="3" Grid.Column="1" 
+                                           Text="Categoría de la partida"
+                                           TextWrapping="Wrap"
+                                           Margin="0,8,0,0"/>
+
+                                <TextBlock Grid.Row="4" Grid.Column="0" 
+                                           Text="subcategory"
+                                           Margin="0,8,0,0"/>
+                                <TextBlock Grid.Row="4" Grid.Column="1" 
+                                           Text="Subcategoría de la partida"
+                                           TextWrapping="Wrap"
+                                           Margin="0,8,0,0"/>
+
+                                <TextBlock Grid.Row="5" Grid.Column="0" 
+                                           Text="description"
+                                           Margin="0,8,0,0"/>
+                                <TextBlock Grid.Row="5" Grid.Column="1" 
+                                           Text="Pequeña descripción de la partida, para facilitar su uso"
+                                           TextWrapping="Wrap"
+                                           Margin="0,8,0,0"/>
+
+                                <TextBlock Grid.Row="6" Grid.Column="0" 
+                                           Text="sustainability_indicator"
+                                           Margin="0,8,0,0"/>
+                                <TextBlock Grid.Row="6" Grid.Column="1" 
+                                           Text="Métrica de sostenibilidad, la cuál se esta midiendo (ENERGY_EFFICIENCY, WATER_USAGE...)"
+                                           TextWrapping="Wrap"
+                                           Margin="0,8,0,0"/>
+
+                                <TextBlock Grid.Row="7" Grid.Column="0" 
+                                           Text="value"
+                                           Margin="0,8,0,0"/>
+                                <TextBlock Grid.Row="7" Grid.Column="1" 
+                                           Text="Valor de medir un único objeto de la partida"
+                                           TextWrapping="Wrap"
+                                           Margin="0,8,0,0"/>
+                            </Grid>
+                        </Border>
+
+                        <StackPanel>
+                            <ProgressBar x:Name="LoadingProgressBar" 
+                                IsIndeterminate="True" 
+                                Height="20" 
+                                Visibility="Hidden"/>
+                            <Label x:Name="LoadingLabel" Content=""/>
+                        </StackPanel>
+
+                        <!-- Important Notes -->
+                        <Border Background="#FFF3CD"
+                                BorderBrush="#FFEEBA"
+                                BorderThickness="1"
+                                CornerRadius="6"
+                                Padding="15"
+                                Margin="0,10,0,0">
+                            <StackPanel>
+                                <TextBlock Text="Notas Importantes:"
+                                           FontWeight="SemiBold"
+                                           Margin="0,0,0,10"/>
+
+                                <TextBlock TextWrapping="Wrap"
+                                           Margin="0,0,0,10">
+                                    • El archivo ha de mantener el nombre de cada hoja intacto.
+                                </TextBlock>
+
+                                <TextBlock TextWrapping="Wrap"
+                                           Margin="0,0,0,10">
+                                    • No modifiques los encabezados de las columnas en los archivos exportados.
+                                </TextBlock>
+
+                                <TextBlock TextWrapping="Wrap"
+                                           Margin="0,0,0,10">
+                                    • Todo dato (fila) borrado o modificado se verá afectado en la base de datos.
+                                </TextBlock>
+
+                                <TextBlock TextWrapping="Wrap">
+                                    • Se recomienda hacer una copia de seguridad de tus bases de datos antes de realizar operaciones de importación.
+                                </TextBlock>
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+                </ScrollViewer>
+            </Grid>
+        </Border>
+    </Grid>
+</UserControl>
